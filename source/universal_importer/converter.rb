@@ -34,6 +34,11 @@ module UniversalImporter
     # @see https://github.com/assimp/assimp
     ASSIMP_EXE = File.join(__dir__, 'Assimp', 'assimp.exe').freeze
 
+    # Absolute path to MeshLab command-line executable.
+    #
+    # @see https://github.com/cnr-isti-vclab/meshlab
+    MESHLAB_CMD_EXE = File.join(__dir__, 'MeshLab', 'meshlabserver.exe').freeze
+
     # Absolute path to Universal Importer program data directory.
     PROGRAMDATA_DIR = File.join(ENV['PROGRAMDATA'], 'Universal Importer').freeze
 
@@ -46,11 +51,17 @@ module UniversalImporter
 
         import_texture_atlas
 
+        ask_for_poly_reduction
+
+        prepare_meshlab_script
+
         copy_to_prog_data_dir
 
         export_to_obj_format
 
         fix_atlas_in_obj_export
+
+        apply_polygon_reduction
 
         export_to_dae_format
 
@@ -105,7 +116,70 @@ module UniversalImporter
 
     end
 
-    # Copies 3D model and texture atlas to Universal Importer program data dir.
+    # Asks user for polygon reduction.
+    #
+    # @return [nil]
+    def ask_for_poly_reduction
+
+      @poly_reduction_params = nil
+
+      poly_reduction_answer = UI.messagebox(
+        TRANSLATE['Do you want to reduce polygon count?'], MB_YESNO
+      )
+
+      if poly_reduction_answer == IDYES
+
+        @poly_reduction_params = UI.inputbox(
+
+          [ TRANSLATE['Target face number'] + ' ' ], # Prompt
+          [ 60000 ], # Default
+          TRANSLATE['Polygon Reduction'] + ' - ' + NAME # Title
+
+        )
+
+      end
+
+      nil
+
+    end
+
+    # Prepares "Polygon Reduction" MeshLab script?
+    #
+    # @return [nil, String]
+    def prepare_meshlab_script
+
+      @poly_reduction_meshlab_script = nil
+
+      return nil unless @poly_reduction_params.is_a?(Array)
+
+      mlx = '<!DOCTYPE FilterScript>' + "\n"
+      mlx += '<FilterScript>' + "\n"
+      mlx += '<filter name="Simplification: Quadric'
+      mlx += ' Edge Collapse Decimation (with texture)">' + "\n"
+      mlx += '<Param type="RichInt" value="'
+      mlx += @poly_reduction_params[0].to_s
+      mlx += '" name="TargetFaceNum"/>' + "\n"
+      mlx += '<Param type="RichFloat" value="0" name="TargetPerc"/>' + "\n"
+      mlx += '<Param type="RichFloat" value="1" name="QualityThr"/>' + "\n"
+      mlx += '<Param type="RichInt" value="1" name="TextureWeight"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveBoundary"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichFloat" value="1" name="BoundaryWeight"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="OptimalPlacement"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveNormal"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="PlanarSimplification"/>'
+      mlx += "\n"
+      mlx += '</filter>' + "\n"
+      mlx += '</FilterScript>'
+
+      @poly_reduction_meshlab_script = mlx
+
+    end
+
+    # Copies 3D model, texture atlas and meshlab script
+    # to Universal Importer program data temp directory.
     #
     # @return [nil]
     def copy_to_prog_data_dir
@@ -125,6 +199,15 @@ module UniversalImporter
         FileUtils.cp(
           @import_texture_atlas_file_path,
           File.join(PROGRAMDATA_DIR, 'tmp')
+        )
+
+      end
+
+      if @poly_reduction_meshlab_script.is_a?(String)
+
+        File.write(
+          File.join(PROGRAMDATA_DIR, 'tmp', 'poly_reduction.mlx'),
+          @poly_reduction_meshlab_script
         )
 
       end
@@ -155,7 +238,7 @@ module UniversalImporter
 
     end
 
-    # Fixes texture atlas in OBJ export.
+    # Fixes texture atlas in OBJ export?
     #
     # @return [nil]
     def fix_atlas_in_obj_export
@@ -174,6 +257,21 @@ module UniversalImporter
       File.write(obj_mtl_export_file_path, obj_mtl_export)
 
       nil
+
+    end
+
+    # Applies polygon reduction on OBJ export thanks to MeshLab?
+    #
+    # @return [nil, Boolean]
+    def apply_polygon_reduction
+
+      return nil unless @poly_reduction_meshlab_script.is_a?(String)
+
+      system(
+        '"' + MESHLAB_CMD_EXE + '" -i "' + 
+        @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
+        ' -s "' + File.join(PROGRAMDATA_DIR, 'tmp', 'poly_reduction.mlx') + '"'
+      )
 
     end
 

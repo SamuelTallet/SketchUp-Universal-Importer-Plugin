@@ -1,0 +1,32 @@
+
+////////////////////////////////////////////
+// Universal Importer French Translation.
+//
+// Package: UIR extension for SketchUp
+// Translation author: Samuel Tallet
+////////////////////////////////////////////
+
+//
+// File: universal_importer.rb
+//
+
+"Import 3D models in SketchUp. 50+ formats are supported."="Importez des modèles 3D dans SketchUp. Plus de 50 formats sont pris en charge.";
+"Reduce polygon count on the fly."="Réduisez le nombre de polygones à la volée.";
+
+//
+// File: converter.rb
+//
+
+"Select a 3D Model"="Sélectionner un modèle 3D";
+"3D Models"="Modèles 3D";
+"Select a Texture Atlas (Optional)"="Sélectionner un atlas de textures (Optionnel)";
+"Do you want to reduce polygon count?"="Voulez-vous réduire le nombre de polygones ?";
+"Target face number"="Nombre de faces ciblé";
+"Polygon Reduction"="Réduction de polygones";
+
+//
+// File: menu.rb
+//
+
+"Import with Universal Importer..."="Importer avec Universal Importer...";
+"macOS is not supported by this plugin."="MacOS n'est pas pris en charge par ce plugin.";

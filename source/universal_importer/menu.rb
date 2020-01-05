@@ -42,7 +42,7 @@ module UniversalImporter
 
         if Sketchup.platform == :platform_osx
 
-          UI.messagebox(TRANSLATE['MacOS is not supported by this plugin.'])
+          UI.messagebox(TRANSLATE['macOS is not supported by this plugin.'])
           return
 
         end

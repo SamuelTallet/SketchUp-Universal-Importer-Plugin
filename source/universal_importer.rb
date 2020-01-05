@@ -26,7 +26,7 @@ require 'extensions'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.0.0'.freeze
+  VERSION = '1.0.1'.freeze
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.strings')
@@ -44,7 +44,8 @@ module UniversalImporter
   extension.copyright   = "© 2019 #{extension.creator}"
 
   features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.']
+    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
+    TRANSLATE['Reduce polygon count on the fly.']
   ]
 
   extension.description = features.join(' ')
