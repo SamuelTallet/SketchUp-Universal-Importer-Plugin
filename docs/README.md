@@ -1,6 +1,6 @@
 # Free universal importer plugin for SketchUp
 
-Import 3D models in SketchUp. 50+ formats are supported.
+Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on the fly.
 
 Supported formats
 -----------------
@@ -76,7 +76,7 @@ Now, you should have in SketchUp an "Import with Universal Importer..." entry in
 Thanks
 ------
 
-This plugin relies on [Assimp library](https://github.com/assimp/assimp). Thanks to Assimp's contributors.
+This plugin relies on [Assimp library](https://github.com/assimp/assimp) and [MeshLab software](https://github.com/cnr-isti-vclab/meshlab). Thanks to Assimp's and MeshLab's contributors.
 
 Copyright
 ---------
