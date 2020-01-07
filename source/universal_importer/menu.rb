@@ -40,13 +40,6 @@ module UniversalImporter
 
       parent_menu.add_item(TRANSLATE['Import with Universal Importer...']) {
 
-        if Sketchup.platform == :platform_osx
-
-          UI.messagebox(TRANSLATE['macOS is not supported by this plugin.'])
-          return
-
-        end
-
         Converter.new
 
       }

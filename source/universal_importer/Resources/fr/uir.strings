@@ -20,6 +20,7 @@
 "Select a 3D Model"="Sélectionner un modèle 3D";
 "3D Models"="Modèles 3D";
 "Select a Texture Atlas (Optional)"="Sélectionner un atlas de textures (Optionnel)";
+"Images"="Images";
 "Do you want to reduce polygon count?"="Voulez-vous réduire le nombre de polygones ?";
 "Target face number"="Nombre de faces ciblé";
 "Polygon Reduction"="Réduction de polygones";
@@ -29,4 +30,3 @@
 //
 
 "Import with Universal Importer..."="Importer avec Universal Importer...";
-"macOS is not supported by this plugin."="MacOS n'est pas pris en charge par ce plugin.";

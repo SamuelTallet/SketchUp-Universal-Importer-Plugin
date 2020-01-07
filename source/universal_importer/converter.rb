@@ -29,18 +29,109 @@ module UniversalImporter
   # 3D model converter.
   class Converter
 
-    # Absolute path to Assimp executable.
+    # Returns absolute path to Assimp executable.
     #
     # @see https://github.com/assimp/assimp
-    ASSIMP_EXE = File.join(__dir__, 'Assimp', 'assimp.exe').freeze
+    #
+    # @raise [StandardError]
+    #
+    # @return [String]
+    def assimp_exe
 
-    # Absolute path to MeshLab command-line executable.
+      if Sketchup.platform == :platform_osx
+
+        return File.join(__dir__, 'Assimp', 'Mac', 'assimp')
+
+      elsif Sketchup.platform == :platform_win
+
+        return File.join(__dir__, 'Assimp', 'Win', 'assimp.exe')
+
+      else
+
+        raise StandardError.new(
+          'Unsupported platform: ' + Sketchup.platform.to_s
+        )
+
+      end
+
+    end
+
+    # Returns absolute path to MeshLab application directory.
     #
     # @see https://github.com/cnr-isti-vclab/meshlab
-    MESHLAB_CMD_EXE = File.join(__dir__, 'MeshLab', 'meshlabserver.exe').freeze
+    #
+    # @raise [StandardError]
+    #
+    # @return [String]
+    def meshlab_dir
 
-    # Absolute path to Universal Importer program data directory.
-    PROGRAMDATA_DIR = File.join(ENV['PROGRAMDATA'], 'Universal Importer').freeze
+      if Sketchup.platform == :platform_osx
+
+        return File.join(__dir__, 'MeshLab', 'Mac')
+
+      elsif Sketchup.platform == :platform_win
+
+        return File.join(__dir__, 'MeshLab', 'Win')
+
+      else
+
+        raise StandardError.new(
+          'Unsupported platform: ' + Sketchup.platform.to_s
+        )
+
+      end
+
+    end
+
+    # Returns absolute path to MeshLab command-line executable.
+    #
+    # @raise [StandardError]
+    #
+    # @return [String]
+    def meshlab_cmd_exe
+
+      if Sketchup.platform == :platform_osx
+
+        return File.join(meshlab_dir, 'MacOS', 'meshlabserver')
+
+      elsif Sketchup.platform == :platform_win
+
+        return File.join(meshlab_dir, 'meshlabserver.exe')
+
+      else
+
+        raise StandardError.new(
+          'Unsupported platform: ' + Sketchup.platform.to_s
+        )
+
+      end
+
+    end
+
+    # Returns absolute path to Universal Importer program data directory.
+    #
+    # @raise [StandardError]
+    #
+    # @return [String]
+    def prog_data_dir
+
+      if Sketchup.platform == :platform_osx
+
+        return File.join(ENV['HOME'], '.UniversalImporter')
+
+      elsif Sketchup.platform == :platform_win
+
+        return File.join(ENV['PROGRAMDATA'], 'Universal Importer')
+
+      else
+
+        raise StandardError.new(
+          'Unsupported platform: ' + Sketchup.platform.to_s
+        )
+
+      end
+
+    end
 
     # Converts a 3D model.
     def initialize
@@ -184,21 +275,22 @@ module UniversalImporter
     # @return [nil]
     def copy_to_prog_data_dir
 
-      FileUtils.mkdir_p(PROGRAMDATA_DIR) unless File.exist?(PROGRAMDATA_DIR)
+      FileUtils.mkdir_p(prog_data_dir)\
+        unless File.exist?(prog_data_dir)
 
-      FileUtils.remove_dir(File.join(PROGRAMDATA_DIR, 'tmp'))\
-        if File.exist?(File.join(PROGRAMDATA_DIR, 'tmp'))
+      FileUtils.remove_dir(File.join(prog_data_dir, 'tmp'))\
+        if File.exist?(File.join(prog_data_dir, 'tmp'))
 
       FileUtils.copy_entry(
         File.dirname(@import_file_path), # source
-        File.join(PROGRAMDATA_DIR, 'tmp') # destination
+        File.join(prog_data_dir, 'tmp') # destination
       )
 
       if !@import_texture_atlas_file_path.nil?
 
         FileUtils.cp(
           @import_texture_atlas_file_path,
-          File.join(PROGRAMDATA_DIR, 'tmp')
+          File.join(prog_data_dir, 'tmp')
         )
 
       end
@@ -206,14 +298,14 @@ module UniversalImporter
       if @poly_reduction_meshlab_script.is_a?(String)
 
         File.write(
-          File.join(PROGRAMDATA_DIR, 'tmp', 'poly_reduction.mlx'),
+          File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx'),
           @poly_reduction_meshlab_script
         )
 
       end
 
       temp_import_file_path = File.join(
-        PROGRAMDATA_DIR,
+        prog_data_dir,
         'tmp',
         File.basename(@import_file_path)
       )
@@ -232,7 +324,7 @@ module UniversalImporter
       @obj_export_file_path = @import_file_path + '.obj'
 
       system(
-        '"' + ASSIMP_EXE + '" export "' + 
+        '"' + assimp_exe + '" export "' + 
         @import_file_path + '" "' + @obj_export_file_path + '"'
       )
 
@@ -267,11 +359,25 @@ module UniversalImporter
 
       return nil unless @poly_reduction_meshlab_script.is_a?(String)
 
-      system(
-        '"' + MESHLAB_CMD_EXE + '" -i "' + 
-        @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
-        ' -s "' + File.join(PROGRAMDATA_DIR, 'tmp', 'poly_reduction.mlx') + '"'
-      )
+      if Sketchup.platform == :platform_osx
+
+        # XXX First, we move to MeshLab application directory to load plugins.
+        system(
+          'cd "' + meshlab_dir + '" && ' + 
+          '"' + meshlab_cmd_exe + '" -i "' + 
+          @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
+          ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
+        )
+
+      else # if Sketchup.platform == :platform_win
+
+        system(
+          '"' + meshlab_cmd_exe + '" -i "' + 
+          @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
+          ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
+        )
+
+      end
 
     end
 
@@ -283,7 +389,7 @@ module UniversalImporter
       @dae_export_file_path = @import_file_path + '.dae'
 
       system(
-        '"' + ASSIMP_EXE + '" export "' + 
+        '"' + assimp_exe + '" export "' + 
         @obj_export_file_path + '" "' + @dae_export_file_path + '" -tri'
       )
 
