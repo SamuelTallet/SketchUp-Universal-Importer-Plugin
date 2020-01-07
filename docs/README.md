@@ -67,7 +67,7 @@ Supported formats
 Installation
 ------------
 
-1. Be sure to have SketchUp 2017 or newer and Windows. (macOS isn't supported.)
+1. Be sure to have SketchUp 2017 or newer.
 2. Download latest Universal Importer plugin from the [SketchUcation PluginStore](https://sketchucation.com/plugin/2275-universal_importer).
 3. Install plugin following this [guide](https://help.sketchup.com/article/3000263).
 
