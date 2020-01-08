@@ -154,16 +154,25 @@ module UniversalImporter
 
         apply_polygon_reduction
 
-        export_to_dae_format
+        if Sketchup.platform == :platform_osx
 
-        fix_unit_in_dae_export
+          export_to_3ds_format
 
-        import_from_dae_format
+          import_from_3ds_format
+
+        else
+
+          export_to_dae_format
+
+          import_from_dae_format
+
+        end
         
       rescue StandardError => exception
-
-        puts 'Error: ' + exception.message
-        puts exception.backtrace
+        
+        UI.messagebox(
+          'Error: ' + exception.message + "\n" + exception.backtrace.first.to_s
+        )
         
       end
 
@@ -310,7 +319,13 @@ module UniversalImporter
         File.basename(@import_file_path)
       )
 
-      @import_file_path = temp_import_file_path
+      @import_file_path = File.join(
+        prog_data_dir,
+        'tmp',
+        'import' + File.extname(File.basename(temp_import_file_path))
+      )
+
+      File.rename(temp_import_file_path, @import_file_path)
 
       nil
 
@@ -318,15 +333,26 @@ module UniversalImporter
 
     # Exports 3D model to OBJ format.
     #
-    # @return [nil, Boolean]
+    # @raise [StandardError]
+    #
+    # @return [nil]
     def export_to_obj_format
 
-      @obj_export_file_path = @import_file_path + '.obj'
+      @obj_export_file_path = File.join(prog_data_dir, 'tmp', 'export.obj')
 
-      system(
+      command =\
         '"' + assimp_exe + '" export "' + 
         @import_file_path + '" "' + @obj_export_file_path + '"'
-      )
+      
+      status = system(command)
+
+      if status != true
+
+        raise StandardError.new('Following command failed: ' + command)
+
+      end
+
+      nil
 
     end
 
@@ -337,7 +363,7 @@ module UniversalImporter
 
       return if @import_texture_atlas_file_path.nil?
 
-      obj_mtl_export_file_path = @import_file_path + '.mtl'
+      obj_mtl_export_file_path = File.join(prog_data_dir, 'tmp', 'export.mtl')
 
       obj_mtl_export = File.read(obj_mtl_export_file_path)
 
@@ -354,7 +380,9 @@ module UniversalImporter
 
     # Applies polygon reduction on OBJ export thanks to MeshLab?
     #
-    # @return [nil, Boolean]
+    # @raise [StandardError]
+    #
+    # @return [nil]
     def apply_polygon_reduction
 
       return nil unless @poly_reduction_meshlab_script.is_a?(String)
@@ -362,52 +390,92 @@ module UniversalImporter
       if Sketchup.platform == :platform_osx
 
         # XXX First, we move to MeshLab application directory to load plugins.
-        system(
+        command =\
           'cd "' + meshlab_dir + '" && ' + 
           '"' + meshlab_cmd_exe + '" -i "' + 
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
           ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
-        )
+        
 
-      else # if Sketchup.platform == :platform_win
+      else
 
-        system(
+        command =\
           '"' + meshlab_cmd_exe + '" -i "' + 
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
           ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
-        )
+        
 
       end
+
+      status = system(command)
+
+      if status != true
+
+        raise StandardError.new('Following command failed: ' + command)
+
+      end
+
+      nil
+
+    end
+
+    # Exports 3D model to 3DS format.
+    #
+    # @raise [StandardError]
+    #
+    # @return [nil]
+    def export_to_3ds_format
+
+      @tds_export_file_path = File.join(prog_data_dir, 'tmp', 'export.3ds')
+
+      command =\
+        '"' + assimp_exe + '" export "' +
+        @obj_export_file_path + '" "' + @tds_export_file_path + '" -tri'
+
+      status = system(command)
+
+      if status != true
+
+        raise StandardError.new('Following command failed: ' + command)
+
+      end
+
+      nil
+      
+    end
+
+    # Imports 3D model from 3DS format.
+    #
+    # @return [Boolean]
+    def import_from_3ds_format
+
+      Sketchup.active_model.import(@tds_export_file_path)
 
     end
 
     # Exports 3D model to DAE format.
     #
-    # @return [nil, Boolean]
-    def export_to_dae_format
-
-      @dae_export_file_path = @import_file_path + '.dae'
-
-      system(
-        '"' + assimp_exe + '" export "' + 
-        @obj_export_file_path + '" "' + @dae_export_file_path + '" -tri'
-      )
-
-    end
-
-    # Fixes unit in DAE export.
+    # @raise [StandardError]
     #
     # @return [nil]
-    def fix_unit_in_dae_export
+    def export_to_dae_format
 
-      dae_export = File.read(@dae_export_file_path)
+      @dae_export_file_path = File.join(prog_data_dir, 'tmp', 'export.dae')
 
-      dae_export.sub!('meter="1"', 'meter="0.01"')
+      command =\
+        '"' + assimp_exe + '" export "' +
+        @obj_export_file_path + '" "' + @dae_export_file_path + '" -tri'
 
-      File.write(@dae_export_file_path, dae_export)
+      status = system(command)
+
+      if status != true
+
+        raise StandardError.new('Following command failed: ' + command)
+
+      end
 
       nil
-
+      
     end
 
     # Imports 3D model from DAE format.
