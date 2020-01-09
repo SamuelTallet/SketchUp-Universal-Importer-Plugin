@@ -38,7 +38,7 @@ module UniversalImporter
       raise ArgumentError, 'Parent menu must be a SketchUp::Menu.'\
         unless parent_menu.is_a?(Sketchup::Menu)
 
-      parent_menu.add_item(TRANSLATE['Import with Universal Importer...']) {
+      parent_menu.add_item(TRANSLATE['Import with'] + ' ' + NAME + '...') {
 
         Converter.new
 

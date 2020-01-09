@@ -10,6 +10,7 @@
 // File: universal_importer.rb
 //
 
+"Universal Importer"="Importateur Universel";
 "Import 3D models in SketchUp. 50+ formats are supported."="Importez des modèles 3D dans SketchUp. Plus de 50 formats sont pris en charge.";
 "Reduce polygon count on the fly."="Réduisez le nombre de polygones à la volée.";
 
@@ -24,9 +25,10 @@
 "Do you want to reduce polygon count?"="Voulez-vous réduire le nombre de polygones ?";
 "Target face number"="Nombre de faces ciblé";
 "Polygon Reduction"="Réduction de polygones";
+"Model height (cm)"="Hauteur du modèle (cm)";
 
 //
 // File: menu.rb
 //
 
-"Import with Universal Importer..."="Importer avec Universal Importer...";
+"Import with"="Importer avec";

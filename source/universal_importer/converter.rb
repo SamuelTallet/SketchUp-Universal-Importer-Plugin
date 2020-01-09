@@ -144,6 +144,8 @@ module UniversalImporter
 
         ask_for_poly_reduction
 
+        ask_for_model_height
+
         prepare_meshlab_script
 
         copy_to_prog_data_dir
@@ -243,6 +245,33 @@ module UniversalImporter
 
     end
 
+    # Asks user for model height.
+    #
+    # @return [nil]
+    def ask_for_model_height
+
+      model_height_in_cm = UI.inputbox(
+
+        [ TRANSLATE['Model height (cm)'] + ' ' ], # Prompt
+        [ 180 ], # Default
+        NAME # Title
+
+      )
+
+      if model_height_in_cm.is_a?(Array)
+
+        SESSION[:model_height_in_cm] = model_height_in_cm[0].to_i
+
+      else
+
+        SESSION[:model_height_in_cm] = 180
+
+      end
+
+      nil
+
+    end
+
     # Prepares "Polygon Reduction" MeshLab script?
     #
     # @return [nil, String]
@@ -281,25 +310,30 @@ module UniversalImporter
     # Copies 3D model, texture atlas and meshlab script
     # to Universal Importer program data temp directory.
     #
+    # XXX Required to avoid invalid characters in path.
+    # Assimp doesn't support whitespaces in path (mac).
+    #
     # @return [nil]
     def copy_to_prog_data_dir
 
       FileUtils.mkdir_p(prog_data_dir)\
         unless File.exist?(prog_data_dir)
 
-      FileUtils.remove_dir(File.join(prog_data_dir, 'tmp'))\
-        if File.exist?(File.join(prog_data_dir, 'tmp'))
+      SESSION[:temp_dir] = File.join(prog_data_dir, 'tmp')
+
+      FileUtils.remove_dir(SESSION[:temp_dir])\
+        if File.exist?(SESSION[:temp_dir])
 
       FileUtils.copy_entry(
         File.dirname(@import_file_path), # source
-        File.join(prog_data_dir, 'tmp') # destination
+        SESSION[:temp_dir] # destination
       )
 
       if !@import_texture_atlas_file_path.nil?
 
         FileUtils.cp(
           @import_texture_atlas_file_path,
-          File.join(prog_data_dir, 'tmp')
+          SESSION[:temp_dir]
         )
 
       end
@@ -307,21 +341,19 @@ module UniversalImporter
       if @poly_reduction_meshlab_script.is_a?(String)
 
         File.write(
-          File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx'),
+          File.join(SESSION[:temp_dir], 'poly_reduction.mlx'),
           @poly_reduction_meshlab_script
         )
 
       end
 
       temp_import_file_path = File.join(
-        prog_data_dir,
-        'tmp',
+        SESSION[:temp_dir],
         File.basename(@import_file_path)
       )
 
       @import_file_path = File.join(
-        prog_data_dir,
-        'tmp',
+        SESSION[:temp_dir],
         'import' + File.extname(File.basename(temp_import_file_path))
       )
 
@@ -338,7 +370,7 @@ module UniversalImporter
     # @return [nil]
     def export_to_obj_format
 
-      @obj_export_file_path = File.join(prog_data_dir, 'tmp', 'export.obj')
+      @obj_export_file_path = File.join(SESSION[:temp_dir], 'export.obj')
 
       command =\
         '"' + assimp_exe + '" export "' + 
@@ -363,7 +395,7 @@ module UniversalImporter
 
       return if @import_texture_atlas_file_path.nil?
 
-      obj_mtl_export_file_path = File.join(prog_data_dir, 'tmp', 'export.mtl')
+      obj_mtl_export_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
 
       obj_mtl_export = File.read(obj_mtl_export_file_path)
 
@@ -394,7 +426,7 @@ module UniversalImporter
           'cd "' + meshlab_dir + '" && ' + 
           '"' + meshlab_cmd_exe + '" -i "' + 
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
-          ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
+          ' -s "' + File.join(SESSION[:temp_dir], 'poly_reduction.mlx') + '"'
         
 
       else
@@ -402,7 +434,7 @@ module UniversalImporter
         command =\
           '"' + meshlab_cmd_exe + '" -i "' + 
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
-          ' -s "' + File.join(prog_data_dir, 'tmp', 'poly_reduction.mlx') + '"'
+          ' -s "' + File.join(SESSION[:temp_dir], 'poly_reduction.mlx') + '"'
         
 
       end
@@ -426,7 +458,7 @@ module UniversalImporter
     # @return [nil]
     def export_to_3ds_format
 
-      @tds_export_file_path = File.join(prog_data_dir, 'tmp', 'export.3ds')
+      @tds_export_file_path = File.join(SESSION[:temp_dir], 'export.3ds')
 
       command =\
         '"' + assimp_exe + '" export "' +
@@ -460,7 +492,7 @@ module UniversalImporter
     # @return [nil]
     def export_to_dae_format
 
-      @dae_export_file_path = File.join(prog_data_dir, 'tmp', 'export.dae')
+      @dae_export_file_path = File.join(SESSION[:temp_dir], 'export.dae')
 
       command =\
         '"' + assimp_exe + '" export "' +

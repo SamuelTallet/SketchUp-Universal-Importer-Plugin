@@ -21,41 +21,39 @@ raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
 require 'sketchup'
-require 'extensions'
+require 'universal_importer/model_observer'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.0.4'.freeze
+  # Observes SketchUp events and reacts.
+  class AppObserver < Sketchup::AppObserver
 
-  # Load translation if it's available for current locale.
-  TRANSLATE = LanguageHandler.new('uir.strings')
-  # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
+    # When SketchUp user creates a new, empty model:
+    def onNewModel(model)
 
-  # Remember extension name. See: REG::Menu.
-  NAME = TRANSLATE['Universal Importer']
+      model.add_observer(ModelObserver.new)
 
-  # Initialize session storage of Universal Importer plugin.
-  SESSION = nil.to_h
+    end
 
-  # Register extension.
+    # When SketchUp user opens an existing model:
+    def onOpenModel(model)
 
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
+      model.add_observer(ModelObserver.new)
 
-  extension.version     = VERSION
-  extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2019 #{extension.creator}"
+    end
 
-  features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
-    TRANSLATE['Reduce polygon count on the fly.']
-  ]
+    # When SketchUp closes:
+    def onQuit
 
-  extension.description = features.join(' ')
+      if !SESSION[:temp_dir].nil? && File.exist?(SESSION[:temp_dir])
 
-  Sketchup.register_extension(
-    extension,
-    true # load_at_start
-  )
+        FileUtils.remove_dir(SESSION[:temp_dir])
+
+      end
+
+    end
+
+  end
 
 end
