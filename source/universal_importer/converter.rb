@@ -291,28 +291,8 @@ module UniversalImporter
       FileUtils.remove_dir(SESSION[:temp_dir])\
         if File.exist?(SESSION[:temp_dir])
 
-      source_dir = File.dirname(@import_file_path)
-
-      if Sketchup.platform == :platform_win
-
-        source_dir.gsub!('\\', '/')
-
-      end
-
-      source_dir_size = Dir.glob(File.join(source_dir, '**', '*'))\
-        .map{ |file| File.size(file) }.inject(:+)
-
-      if source_dir_size.to_i > 1000000000 # 1GB
-
-        error_message = 'Folder that contains model is too big... '
-        error_message += 'Move model and textures to a sub folder.'
-
-        raise StandardError.new(error_message)
-
-      end
-
       FileUtils.copy_entry(
-        source_dir,
+        File.dirname(@import_file_path), # source
         SESSION[:temp_dir] # destination
       )
 
