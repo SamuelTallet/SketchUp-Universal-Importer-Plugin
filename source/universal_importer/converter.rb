@@ -146,13 +146,13 @@ module UniversalImporter
 
         ask_for_model_height
 
-        prepare_meshlab_script
-
         copy_to_prog_data_dir
 
         export_to_obj_format
 
         fix_atlas_in_obj_export
+
+        prepare_meshlab_script
 
         apply_polygon_reduction
 
@@ -274,43 +274,8 @@ module UniversalImporter
 
     end
 
-    # Prepares "Polygon Reduction" MeshLab script?
-    #
-    # @return [nil, String]
-    def prepare_meshlab_script
-
-      @poly_reduction_meshlab_script = nil
-
-      return nil unless @poly_reduction_params.is_a?(Array)
-
-      mlx = '<!DOCTYPE FilterScript>' + "\n"
-      mlx += '<FilterScript>' + "\n"
-      mlx += '<filter name="Simplification: Quadric'
-      mlx += ' Edge Collapse Decimation (with texture)">' + "\n"
-      mlx += '<Param type="RichInt" value="'
-      mlx += @poly_reduction_params[0].to_s
-      mlx += '" name="TargetFaceNum"/>' + "\n"
-      mlx += '<Param type="RichFloat" value="0" name="TargetPerc"/>' + "\n"
-      mlx += '<Param type="RichFloat" value="1" name="QualityThr"/>' + "\n"
-      mlx += '<Param type="RichInt" value="1" name="TextureWeight"/>' + "\n"
-      mlx += '<Param type="RichBool" value="true" name="PreserveBoundary"/>'
-      mlx += "\n"
-      mlx += '<Param type="RichFloat" value="1" name="BoundaryWeight"/>' + "\n"
-      mlx += '<Param type="RichBool" value="true" name="OptimalPlacement"/>'
-      mlx += "\n"
-      mlx += '<Param type="RichBool" value="true" name="PreserveNormal"/>'
-      mlx += "\n"
-      mlx += '<Param type="RichBool" value="true" name="PlanarSimplification"/>'
-      mlx += "\n"
-      mlx += '</filter>' + "\n"
-      mlx += '</FilterScript>'
-
-      @poly_reduction_meshlab_script = mlx
-
-    end
-
-    # Copies 3D model, texture atlas and meshlab script
-    # to Universal Importer program data temp directory.
+    # Copies 3D model, textures and texture atlas to
+    # Universal Importer program data temp directory.
     #
     # XXX Required to avoid invalid characters in path.
     # Assimp doesn't support whitespaces in path (mac).
@@ -356,15 +321,6 @@ module UniversalImporter
         FileUtils.cp(
           @import_texture_atlas_file_path,
           SESSION[:temp_dir]
-        )
-
-      end
-
-      if @poly_reduction_meshlab_script.is_a?(String)
-
-        File.write(
-          File.join(SESSION[:temp_dir], 'poly_reduction.mlx'),
-          @poly_reduction_meshlab_script
         )
 
       end
@@ -436,6 +392,51 @@ module UniversalImporter
 
     end
 
+    # Prepares polygon reduction MeshLab script?
+    #
+    # @return [nil]
+    def prepare_meshlab_script
+
+      return nil unless @poly_reduction_params.is_a?(Array)
+
+      obj_mtl_export = File.read(File.join(SESSION[:temp_dir], 'export.mtl'))
+
+      mlx = '<!DOCTYPE FilterScript>' + "\n"
+      mlx += '<FilterScript>' + "\n"
+      mlx += '<filter name="Simplification: Quadric Edge Collapse Decimation'
+
+      if obj_mtl_export.include?('map')
+
+        mlx += ' (with texture)">' + "\n"
+
+      else
+
+        mlx += '">' + "\n"
+
+      end
+
+      mlx += '<Param type="RichInt" value="'
+      mlx += @poly_reduction_params[0].to_s
+      mlx += '" name="TargetFaceNum"/>' + "\n"
+      mlx += '<Param type="RichFloat" value="0" name="TargetPerc"/>' + "\n"
+      mlx += '<Param type="RichFloat" value="1" name="QualityThr"/>' + "\n"
+      mlx += '<Param type="RichInt" value="1" name="TextureWeight"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveBoundary"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichFloat" value="1" name="BoundaryWeight"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="OptimalPlacement"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveNormal"/>'
+      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="PlanarSimplification"/>'
+      mlx += "\n"
+      mlx += '</filter>' + "\n"
+      mlx += '</FilterScript>'
+
+      File.write(File.join(SESSION[:temp_dir], 'poly_reduction.mlx'), mlx)
+
+    end
+
     # Applies polygon reduction on OBJ export thanks to MeshLab?
     #
     # @raise [StandardError]
@@ -443,7 +444,7 @@ module UniversalImporter
     # @return [nil]
     def apply_polygon_reduction
 
-      return nil unless @poly_reduction_meshlab_script.is_a?(String)
+      return nil unless @poly_reduction_params.is_a?(Array)
 
       if Sketchup.platform == :platform_osx
 
