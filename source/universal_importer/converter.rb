@@ -173,7 +173,9 @@ module UniversalImporter
       rescue StandardError => exception
         
         UI.messagebox(
-          'Error: ' + exception.message + "\n" + exception.backtrace.first.to_s
+          'Universal Importer Error: ' + exception.message +
+          "\n" + exception.backtrace.first.to_s + "\n" +
+          "\n" + 'Universal Importer Version: ' + VERSION
         )
         
       end
@@ -324,8 +326,28 @@ module UniversalImporter
       FileUtils.remove_dir(SESSION[:temp_dir])\
         if File.exist?(SESSION[:temp_dir])
 
+      source_dir = File.dirname(@import_file_path)
+
+      if Sketchup.platform == :platform_win
+
+        source_dir.gsub!('\\', '/')
+
+      end
+
+      source_dir_size = Dir.glob(File.join(source_dir, '**', '*'))\
+        .map{ |file| File.size(file) }.inject(:+)
+
+      if source_dir_size.to_i > 1000000000 # 1GB
+
+        error_message = 'Folder that contains model is too big... '
+        error_message += 'Move model and textures to a sub folder.'
+
+        raise StandardError.new(error_message)
+
+      end
+
       FileUtils.copy_entry(
-        File.dirname(@import_file_path), # source
+        source_dir,
         SESSION[:temp_dir] # destination
       )
 
@@ -363,7 +385,7 @@ module UniversalImporter
 
     end
 
-    # Exports 3D model to OBJ format.
+    # Exports 3D model to OBJ format thanks to Assimp.
     #
     # @raise [StandardError]
     #
@@ -380,7 +402,11 @@ module UniversalImporter
 
       if status != true
 
-        raise StandardError.new('Following command failed: ' + command)
+        system(command + ' > "' + File.join(SESSION[:temp_dir], 'a.log') + '"')
+
+        result = File.read(File.join(SESSION[:temp_dir], 'a.log'))
+
+        raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
 
@@ -428,7 +454,6 @@ module UniversalImporter
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
           ' -s "' + File.join(SESSION[:temp_dir], 'poly_reduction.mlx') + '"'
         
-
       else
 
         command =\
@@ -436,14 +461,17 @@ module UniversalImporter
           @obj_export_file_path + '" -o "' + @obj_export_file_path + '" -m wt' +
           ' -s "' + File.join(SESSION[:temp_dir], 'poly_reduction.mlx') + '"'
         
-
       end
 
       status = system(command)
 
       if status != true
 
-        raise StandardError.new('Following command failed: ' + command)
+        system(command + ' > "' + File.join(SESSION[:temp_dir], 'ml.log') + '"')
+
+        result = File.read(File.join(SESSION[:temp_dir], 'ml.log'))
+
+        raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
 
@@ -451,7 +479,7 @@ module UniversalImporter
 
     end
 
-    # Exports 3D model to 3DS format.
+    # Exports 3D model to 3DS format thanks to Assimp.
     #
     # @raise [StandardError]
     #
@@ -468,7 +496,11 @@ module UniversalImporter
 
       if status != true
 
-        raise StandardError.new('Following command failed: ' + command)
+        system(command + ' > "' + File.join(SESSION[:temp_dir], 'a.log') + '"')
+
+        result = File.read(File.join(SESSION[:temp_dir], 'a.log'))
+
+        raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
 
@@ -485,7 +517,7 @@ module UniversalImporter
 
     end
 
-    # Exports 3D model to DAE format.
+    # Exports 3D model to DAE format thanks to Assimp.
     #
     # @raise [StandardError]
     #
@@ -502,7 +534,11 @@ module UniversalImporter
 
       if status != true
 
-        raise StandardError.new('Following command failed: ' + command)
+        system(command + ' > "' + File.join(SESSION[:temp_dir], 'a.log') + '"')
+
+        result = File.read(File.join(SESSION[:temp_dir], 'a.log'))
+
+        raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
 

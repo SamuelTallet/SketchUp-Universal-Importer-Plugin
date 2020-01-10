@@ -15,6 +15,12 @@
 "Reduce polygon count on the fly."="Reducir el número de polígonos al vuelo.";
 
 //
+// File: components.rb
+//
+
+"Scale Imported Model"="Escalar el modelo importado";
+
+//
 // File: converter.rb
 //
 
@@ -25,7 +31,7 @@
 "Do you want to reduce polygon count?"="¿Quieres reducir la cantidad de polígonos?";
 "Target face number"="Número de caras objetivo";
 "Polygon Reduction"="Reducción de polígonos";
-"Model height (cm)"="Altura del modelo";
+"Model height (cm)"="Altura del modelo (cm)";
 
 //
 // File: menu.rb

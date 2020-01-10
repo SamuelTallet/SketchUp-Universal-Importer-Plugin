@@ -15,6 +15,12 @@
 "Reduce polygon count on the fly."="Réduisez le nombre de polygones à la volée.";
 
 //
+// File: components.rb
+//
+
+"Scale Imported Model"="Redimensionner le modèle importé";
+
+//
 // File: converter.rb
 //
 

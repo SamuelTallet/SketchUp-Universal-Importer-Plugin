@@ -26,13 +26,13 @@ require 'extensions'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.0.4'.freeze
+  VERSION = '1.0.5'.freeze
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.strings')
   # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
 
-  # Remember extension name. See: REG::Menu.
+  # Remember extension name. See: UniversalImporter::Menu.
   NAME = TRANSLATE['Universal Importer']
 
   # Initialize session storage of Universal Importer plugin.
