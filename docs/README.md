@@ -73,6 +73,13 @@ Installation
 
 Now, you should have in SketchUp an "Import with Universal Importer..." entry in "File" menu.
 
+Documentation
+-------------
+
+### I'm getting an error "Command failed". What can I do?
+
+First, (re)install [Microsoft Visual C++ library](https://aka.ms/vs/16/release/vc_redist.x64.exe). If problem persists, report bug [here](https://github.com/SamuelTS/SketchUp-Universal-Importer-Plugin/issues) or [there](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951).
+
 Thanks
 ------
 
