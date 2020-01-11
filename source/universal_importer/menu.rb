@@ -21,7 +21,7 @@ raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
 require 'sketchup'
-require 'universal_importer/converter'
+require 'universal_importer/importer'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -40,7 +40,7 @@ module UniversalImporter
 
       parent_menu.add_item(TRANSLATE['Import with'] + ' ' + NAME + '...') {
 
-        Converter.new
+        Importer.new
 
       }
 

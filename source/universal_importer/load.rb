@@ -24,6 +24,7 @@ require 'sketchup'
 require 'universal_importer/app_observer'
 require 'universal_importer/model_observer'
 require 'universal_importer/menu'
+require 'universal_importer/toolbar'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -31,11 +32,13 @@ module UniversalImporter
   Sketchup.add_observer(AppObserver.new)
   Sketchup.active_model.add_observer(ModelObserver.new)
 
-  # Plugs Universal Importer menu into SketchUp UI.
+  # Plugs Universal Importer menus into SketchUp UI.
 
   Menu.new(
     UI.menu('File') # parent_menu
   )
+
+  Toolbar.new.prepare.show
 
   # Load complete.
 

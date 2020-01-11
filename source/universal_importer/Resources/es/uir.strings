@@ -38,3 +38,15 @@
 //
 
 "Import with"="Importar con";
+
+//
+// File: polyreducer.rb
+//
+
+"Selection must be empty!"="¡La selección debe estar vacía!";
+
+//
+// File: toolbar.rb
+//
+
+"Reduce Polygon Count..."="Reducir la cantidad de polígonos...";

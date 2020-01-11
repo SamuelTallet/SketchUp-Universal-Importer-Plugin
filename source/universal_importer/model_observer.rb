@@ -42,6 +42,14 @@ module UniversalImporter
 
       end
 
+      if !SESSION[:source_filename].nil?
+
+        component.definition.name = SESSION[:source_filename]
+
+        SESSION[:source_filename] = nil
+
+      end
+
     end
 
   end
