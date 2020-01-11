@@ -32,7 +32,7 @@ module UniversalImporter
   Sketchup.add_observer(AppObserver.new)
   Sketchup.active_model.add_observer(ModelObserver.new)
 
-  # Plugs Universal Importer menus into SketchUp UI.
+  # Plugs Universal Importer menu into SketchUp UI.
 
   Menu.new(
     UI.menu('File') # parent_menu

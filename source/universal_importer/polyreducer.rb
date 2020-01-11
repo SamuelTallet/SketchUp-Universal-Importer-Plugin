@@ -56,7 +56,7 @@ module UniversalImporter
 
     end
 
-    # Reduces polygons of SketchUp selected entities.
+    # Reduces polygons of current SketchUp model.
     def initialize
 
       begin
@@ -144,7 +144,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to DAE format.
+    # Converts current SketchUp model to DAE format.
     #
     # @return [true, false]
     def convert_from_skp_to_dae
@@ -163,7 +163,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to OBJ format.
+    # Converts current SketchUp model to OBJ format.
     #
     # @return [nil]
     def convert_from_dae_to_obj
@@ -201,7 +201,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to 3DS format.
+    # Converts current SketchUp model to 3DS format.
     #
     # @return [nil]
     def convert_from_obj_to_3ds
@@ -216,7 +216,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to SKP format.
+    # Converts current SketchUp model to SKP format.
     #
     # @return [true, false]
     def convert_from_3ds_to_skp
@@ -225,7 +225,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to DAE format.
+    # Converts current SketchUp model to DAE format.
     #
     # @return [nil]
     def convert_from_obj_to_dae
@@ -240,7 +240,7 @@ module UniversalImporter
 
     end
 
-    # Converts SketchUp selected entities to SKP format.
+    # Converts current SketchUp model to SKP format.
     #
     # @return [true, false]
     def convert_from_dae_to_skp
