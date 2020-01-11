@@ -71,7 +71,7 @@ Installation
 2. Download latest Universal Importer plugin from the [SketchUcation PluginStore](https://sketchucation.com/plugin/2275-universal_importer).
 3. Install plugin following this [guide](https://help.sketchup.com/article/3000263).
 
-Now, you should have in SketchUp an "Import with Universal Importer..." entry in "File" menu.
+Now, you should have in SketchUp an "Import with Universal Importer..." entry in "File" menu and an "Universal Importer" toolbar.
 
 Documentation
 -------------
