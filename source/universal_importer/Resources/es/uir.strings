@@ -40,6 +40,13 @@
 "Import with"="Importar con";
 
 //
+// File: model_observer.rb
+//
+
+"Face count before reduction:"="Número de caras antes reducción:";
+"Face count after reduction:"="Número de caras después reducción:";
+
+//
 // File: polyreducer.rb
 //
 

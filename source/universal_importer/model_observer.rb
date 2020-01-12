@@ -32,6 +32,7 @@ module UniversalImporter
     # When a component is “placed” into the model:
     def onPlaceComponent(component)
 
+      # Scales component according to user input.
       if !SESSION[:model_height_in_cm].nil?
 
         Components.scale_down(component, SESSION[:model_height_in_cm])
@@ -42,11 +43,30 @@ module UniversalImporter
 
       end
 
+      # Names component with source filename.
       if !SESSION[:source_filename].nil?
 
         component.definition.name = SESSION[:source_filename]
 
         SESSION[:source_filename] = nil
+
+      end
+
+      # Displays face count before/after reduction.
+      if !SESSION[:faces_num_before_reduc].nil?
+
+        UI.messagebox(
+
+          TRANSLATE['Face count before reduction:'] + ' ' +
+          SESSION[:faces_num_before_reduc].to_s + "\n" +
+
+          TRANSLATE['Face count after reduction:'] + ' ' +
+          (Sketchup.active_model.number_faces\
+            - SESSION[:faces_num_before_reduc]).to_s
+          
+        )
+
+        SESSION[:faces_num_before_reduc] = nil
 
       end
 

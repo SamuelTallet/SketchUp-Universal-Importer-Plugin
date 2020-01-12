@@ -165,7 +165,7 @@ module UniversalImporter
         @poly_reduction_params = UI.inputbox(
 
           [ TRANSLATE['Target face number'] + ' ' ], # Prompt
-          [ 60000 ], # Default
+          [ 40000 ], # Default
           TRANSLATE['Polygon Reduction'] + ' - ' + NAME # Title
 
         )
@@ -265,7 +265,7 @@ module UniversalImporter
 
     end
 
-    # Fixes embedded textures in OBJ export?
+    # Fixes embedded textures in Assimp OBJ export?
     #
     # @return [nil]
     def fix_e_tex_in_obj_export
@@ -282,7 +282,11 @@ module UniversalImporter
           File.join(SESSION[:temp_dir], 'assimp.log')
         )
 
-        for texture_index in 0..9
+        texture_index = 1000
+
+        1000.times do
+
+          texture_index -= 1
 
           next if !obj_mtl_export.include?('*' + texture_index.to_s)
 
@@ -323,7 +327,7 @@ module UniversalImporter
 
     end
 
-    # Fixes texture atlas in OBJ export?
+    # Fixes texture atlas in Assimp OBJ export?
     #
     # @return [nil]
     def fix_atlas_in_obj_export
@@ -345,7 +349,7 @@ module UniversalImporter
 
     end
 
-    # Applies polygon reduction on OBJ export.
+    # Applies polygon reduction on Assimp OBJ export.
     #
     # @return [nil]
     def apply_polygon_reduction

@@ -74,6 +74,8 @@ module UniversalImporter
         # Aborts if user cancelled operation.
         return if @poly_reduction_params == false
 
+        face_count_before_reduc
+
         reset_prog_data_tmp_dir
 
         convert_from_skp_to_dae
@@ -116,10 +118,21 @@ module UniversalImporter
       @poly_reduction_params = UI.inputbox(
 
         [ TRANSLATE['Target face number'] + ' ' ], # Prompt
-        [ 60000 ], # Default
-        TRANSLATE['Polygon Reduction'] + ' - ' + NAME # Title
+        [ 40000 ], # Default
+        TRANSLATE['Polygon Reduction'] # Title
 
       )
+
+      nil
+
+    end
+
+    # Memorizes face count before polygon reduction.
+    #
+    # @return nil
+    def face_count_before_reduc
+
+      SESSION[:faces_num_before_reduc] = Sketchup.active_model.number_faces
 
       nil
 
