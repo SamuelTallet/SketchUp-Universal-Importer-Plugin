@@ -51,6 +51,7 @@
 //
 
 "Selection must be empty!"="La sélection doit être vide !";
+"Current face count:"="Nombre de faces actuel :";
 
 //
 // File: toolbar.rb

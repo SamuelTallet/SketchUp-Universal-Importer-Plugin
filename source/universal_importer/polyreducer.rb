@@ -61,20 +61,24 @@ module UniversalImporter
 
       begin
 
+        @model = Sketchup.active_model
+
         # XXX Selection must be empty otherwise DAE export will be VERY slow.
-        if !Sketchup.active_model.selection.empty?
+        if !@model.selection.empty?
 
           UI.messagebox(TRANSLATE['Selection must be empty!'])
           return
 
         end
 
+        show_current_face_count
+
         get_poly_reduc_params
 
         # Aborts if user cancelled operation.
         return if @poly_reduction_params == false
 
-        face_count_before_reduc
+        memorize_faces_number
 
         reset_prog_data_tmp_dir
 
@@ -110,6 +114,19 @@ module UniversalImporter
 
     end
 
+    # Shows current face count.
+    #
+    # @return [nil]
+    def show_current_face_count
+
+      UI.messagebox(
+        TRANSLATE['Current face count:'] + ' ' + @model.number_faces.to_s
+      )
+
+      nil
+
+    end
+
     # Gets polygon reduction parameters.
     #
     # @return [nil]
@@ -127,12 +144,12 @@ module UniversalImporter
 
     end
 
-    # Memorizes face count before polygon reduction.
+    # Memorizes faces number before polygon reduction.
     #
     # @return nil
-    def face_count_before_reduc
+    def memorize_faces_number
 
-      SESSION[:faces_num_before_reduc] = Sketchup.active_model.number_faces
+      SESSION[:faces_num_before_reduc] = @model.number_faces
 
       nil
 
@@ -164,7 +181,7 @@ module UniversalImporter
 
       @dae_export_file_path = File.join(SESSION[:temp_dir], 'export.dae')
 
-      Sketchup.active_model.export(@dae_export_file_path, {
+      @model.export(@dae_export_file_path, {
 
         :triangulated_faces   => true,
         :edges                => false,
@@ -234,7 +251,7 @@ module UniversalImporter
     # @return [true, false]
     def convert_from_3ds_to_skp
 
-      Sketchup.active_model.import(@tds_import_file_path)
+      @model.import(@tds_import_file_path)
 
     end
 
@@ -258,7 +275,7 @@ module UniversalImporter
     # @return [true, false]
     def convert_from_dae_to_skp
 
-      Sketchup.active_model.import(@dae_import_file_path)
+      @model.import(@dae_import_file_path)
 
     end
 

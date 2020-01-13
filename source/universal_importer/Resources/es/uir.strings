@@ -18,19 +18,19 @@
 // File: components.rb
 //
 
-"Scale Imported Model"="Escalar el modelo importado";
+"Scale Imported Model"="Redimensionar Modelo Importado";
 
 //
 // File: converter.rb
 //
 
-"Select a 3D Model"="Seleccionar un modelo 3D";
+"Select a 3D Model"="Seleccionar un Modelo 3D";
 "3D Models"="Modelos 3D";
-"Select a Texture Atlas (Optional)"="Seleccionar un atlas de texturas (Opcional)";
+"Select a Texture Atlas (Optional)"="Seleccionar un Atlas de Texturas (Opcional)";
 "Images"="Imágenes";
 "Do you want to reduce polygon count?"="¿Quieres reducir la cantidad de polígonos?";
 "Target face number"="Número de caras objetivo";
-"Polygon Reduction"="Reducción de polígonos";
+"Polygon Reduction"="Reducción de Polígonos";
 "Model height (cm)"="Altura del modelo (cm)";
 
 //
@@ -43,17 +43,18 @@
 // File: model_observer.rb
 //
 
-"Face count before reduction:"="Número de caras antes reducción:";
-"Face count after reduction:"="Número de caras después reducción:";
+"Face count before reduction:"="Cantidad de caras antes de reducción:";
+"Face count after reduction:"="Cantidad de caras después de reducción:";
 
 //
 // File: polyreducer.rb
 //
 
 "Selection must be empty!"="¡La selección debe estar vacía!";
+"Current face count:"="Cantidad de caras actual:";
 
 //
 // File: toolbar.rb
 //
 
-"Reduce Polygon Count..."="Reducir la cantidad de polígonos...";
+"Reduce Polygon Count..."="Reducir la Cantidad de Polígonos...";

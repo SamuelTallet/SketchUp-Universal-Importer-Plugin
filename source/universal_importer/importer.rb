@@ -66,6 +66,8 @@ module UniversalImporter
         # Aborts if user cancelled operation.
         return if @import_file_path.nil?
 
+        prevent_big_copy_issue
+
         import_texture_atlas
 
         ask_for_poly_reduction
@@ -130,6 +132,58 @@ module UniversalImporter
 
       SESSION[:source_filename] = File.basename(@import_file_path)\
         unless @import_file_path.nil?
+
+      nil
+
+    end
+
+    # Prevents "big copy" issue.
+    #
+    # @raise [StandardError]
+    #
+    # @return [nil]
+    def prevent_big_copy_issue
+
+      # Directory separator count relative to user's home directory.
+      home_rel_dir_sep_count = 0
+
+      if Sketchup.platform == :platform_osx
+
+        if @import_file_path.start_with?(ENV['HOME'])
+
+          home_rel_dir_sep_count =\
+            @import_file_path.sub(ENV['HOME'], '').count('/')
+
+        end
+
+      elsif Sketchup.platform == :platform_win
+
+        if @import_file_path.start_with?(ENV['USERPROFILE'])
+
+          home_rel_dir_sep_count =\
+            @import_file_path.sub(ENV['USERPROFILE'], '').count('\\')
+
+        end
+
+      else
+
+        raise StandardError.new(
+          'Unsupported platform: ' + Sketchup.platform.to_s
+        )
+
+      end
+
+      # If model is located at /Users/someuser/some_model.fbx
+      # or else at /Users/someuser/Some Folder/some_model.fbx:
+      if home_rel_dir_sep_count.between?(1, 2)
+
+        raise StandardError.new(
+          'Model can\'t be loaded from this path: ' +
+          File.dirname(@import_file_path) + "\n" +
+          'Move model and textures to a sub folder.'
+        )
+
+      end
 
       nil
 
