@@ -21,14 +21,16 @@
 "Scale Imported Model"="Redimensionner le modèle importé";
 
 //
-// File: converter.rb
+// File: importer.rb
 //
 
 "Select a 3D Model"="Sélectionner un modèle 3D";
 "3D Models"="Modèles 3D";
 "Select a Texture Atlas (Optional)"="Sélectionner un atlas de textures (Optionnel)";
 "Images"="Images";
-"Do you want to reduce polygon count?"="Voulez-vous réduire le nombre de polygones ?";
+"Model has"="Le modèle a";
+"faces"="faces";
+"Reduce polygon count?"="Réduire le nombre de polygones ?";
 "Target face number"="Nombre de faces ciblé";
 "Polygon Reduction"="Réduction de polygones";
 "Model height (cm)"="Hauteur du modèle (cm)";

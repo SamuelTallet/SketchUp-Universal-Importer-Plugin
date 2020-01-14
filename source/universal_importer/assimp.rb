@@ -21,6 +21,7 @@ raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
 require 'sketchup'
+require 'fileutils'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -96,7 +97,7 @@ module UniversalImporter
 
     end
 
-    # Extracts embedded textures from a 3D model?
+    # If they exist: extracts embedded textures from a 3D model.
     #
     # @param [String] in_path
     # @param [String] log_path
@@ -130,6 +131,102 @@ module UniversalImporter
       end
 
       nil
+
+    end
+
+    # If they exist: gets texture references of a 3D model.
+    #
+    # @param [String] in_path
+    # @param [String] log_path
+    # @raise [ArgumentError]
+    #
+    # @raise [StandardError]
+    #
+    # @return [Array<String>]
+    def self.get_texture_refs(in_path, log_path)
+
+      raise ArgumentError, 'In Path parameter must be a String.'\
+        unless in_path.is_a?(String)
+
+      raise ArgumentError, 'Log Path parameter must be a String.'\
+        unless log_path.is_a?(String)
+
+      texture_refs = []
+
+      command = '"' + exe + '" info "' + in_path + '"' + ' > "' + log_path + '"'
+      
+      status = system(command)
+
+      if status != true
+
+        result = 'No log available.'
+
+        result = File.read(log_path) if File.exist?(log_path)
+
+        raise StandardError.new('Command failed: ' + command + "\n\n" + result)
+
+      end
+
+      info = File.read(log_path)
+
+      if info.include?('Texture Refs:')
+
+        if info.include?('Named Animations:')
+
+          tex_nfo = info.split('Texture Refs:')[1].split('Named Animations:')[0]
+
+        else
+
+          tex_nfo = info.split('Texture Refs:')[1].split('Node hierarchy:')[0]
+
+        end
+
+        tex_nfo.lines.each do |line|
+
+          cleaned_line = line.strip.sub("'", '').sub(/.*\K'/, '')
+
+          if !cleaned_line.empty? && !cleaned_line.start_with?('*')
+
+            texture_refs.push(cleaned_line)
+
+          end
+
+        end
+
+      end
+
+      texture_refs.uniq
+
+    end
+
+    # Gets face count of a 3D model.
+    #
+    # @param [String] log_path
+    # @raise [ArgumentError]
+    #
+    # @raise [StandardError]
+    #
+    # @return [Integer]
+    def self.get_face_count(log_path)
+
+      raise ArgumentError, 'Log Path parameter must be a String.'\
+        unless log_path.is_a?(String)
+
+      face_count = 0
+
+      info = File.read(log_path)
+
+      info.lines.each do |line|
+
+        if line.start_with?('Faces:')
+
+          return line.gsub(/[^0-9]/, '').to_i
+
+        end
+
+      end
+
+      face_count
 
     end
 

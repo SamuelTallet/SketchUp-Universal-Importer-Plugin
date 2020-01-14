@@ -20,42 +20,43 @@
 raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
-require 'sketchup'
-require 'extensions'
+require 'fileutils'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.1'.freeze
+  # Minimal OBJ parser.
+  class OBJ
 
-  # Load translation if it's available for current locale.
-  TRANSLATE = LanguageHandler.new('uir.strings')
-  # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
+    # Parses an OBJ file.
+    def initialize(file_path)
 
-  # Remember extension name. See: UniversalImporter::Menu.
-  NAME = TRANSLATE['Universal Importer']
+      raise ArgumentError, 'File Path parameter must be a String.'\
+        unless file_path.is_a?(String)
 
-  # Initialize session storage of Universal Importer plugin.
-  SESSION = nil.to_h
+      @file_contents = File.read(file_path)
 
-  # Register extension.
+    end
 
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
+    # Returns MTL path if it exists.
+    #
+    # @return [String, nil]
+    def mtl_path
 
-  extension.version     = VERSION
-  extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2019 #{extension.creator}"
+      @file_contents.lines.each do |line|
 
-  features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
-    TRANSLATE['Reduce polygon count on the fly.']
-  ]
+        if line.start_with?('mtllib')
+        
+          return line.sub('mtllib', '').strip.sub('./', '')
 
-  extension.description = features.join(' ')
+        end
 
-  Sketchup.register_extension(
-    extension,
-    true # load_at_start
-  )
+      end
+
+      nil
+
+    end
+
+  end
 
 end

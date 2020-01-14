@@ -20,42 +20,52 @@
 raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
-require 'sketchup'
-require 'extensions'
+require 'fileutils'
+require 'json'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.1'.freeze
+  # Minimal glTF parser.
+  class GlTF
 
-  # Load translation if it's available for current locale.
-  TRANSLATE = LanguageHandler.new('uir.strings')
-  # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
+    # Parses a glTF file.
+    def initialize(file_path)
 
-  # Remember extension name. See: UniversalImporter::Menu.
-  NAME = TRANSLATE['Universal Importer']
+      raise ArgumentError, 'File Path parameter must be a String.'\
+        unless file_path.is_a?(String)
 
-  # Initialize session storage of Universal Importer plugin.
-  SESSION = nil.to_h
+      file_contents = File.read(file_path)
 
-  # Register extension.
+      @json = JSON.parse(file_contents)
 
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
+    end
 
-  extension.version     = VERSION
-  extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2019 #{extension.creator}"
+    # Returns buffers paths if they exist.
+    #
+    # @return [Array<String>]
+    def buffers_paths
 
-  features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
-    TRANSLATE['Reduce polygon count on the fly.']
-  ]
+      output = []
 
-  extension.description = features.join(' ')
+      if @json.key?('buffers')
 
-  Sketchup.register_extension(
-    extension,
-    true # load_at_start
-  )
+        @json['buffers'].each do |buffer|
+
+          if buffer.key?('uri') && !buffer['uri'].start_with?('data:')
+
+            output.push(buffer['uri'])
+
+          end
+
+        end
+
+      end
+
+      output
+
+    end
+
+  end
 
 end

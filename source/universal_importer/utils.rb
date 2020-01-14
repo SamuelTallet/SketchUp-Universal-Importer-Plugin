@@ -20,42 +20,39 @@
 raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
-require 'sketchup'
-require 'extensions'
+require 'fileutils'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.1'.freeze
+  # Utilities.
+  module Utils
 
-  # Load translation if it's available for current locale.
-  TRANSLATE = LanguageHandler.new('uir.strings')
-  # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
+    # Copies a file by taking care to check if destination directory exists...
+    #
+    # @param [String] source_file_path
+    # @param [String] destination_file_path
+    # @raise [ArgumentError]
+    #
+    # @return [nil]
+    def self.mkdir_and_copy_file(source_file_path, destination_file_path)
 
-  # Remember extension name. See: UniversalImporter::Menu.
-  NAME = TRANSLATE['Universal Importer']
+      raise ArgumentError, 'Source File Path parameter must be a String.'\
+        unless source_file_path.is_a?(String)
 
-  # Initialize session storage of Universal Importer plugin.
-  SESSION = nil.to_h
+      raise ArgumentError, 'Destination File Path parameter must be a String.'\
+        unless destination_file_path.is_a?(String)
 
-  # Register extension.
+      destination_dir = File.dirname(destination_file_path)
 
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
+      FileUtils.mkdir_p(destination_dir) unless File.exist?(destination_dir)
 
-  extension.version     = VERSION
-  extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2019 #{extension.creator}"
+      FileUtils.cp(source_file_path, destination_file_path)
 
-  features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
-    TRANSLATE['Reduce polygon count on the fly.']
-  ]
+      nil
 
-  extension.description = features.join(' ')
+    end
 
-  Sketchup.register_extension(
-    extension,
-    true # load_at_start
-  )
+  end
 
 end

@@ -22,6 +22,9 @@ raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
 
 require 'sketchup'
 require 'fileutils'
+require 'universal_importer/gltf'
+require 'universal_importer/obj'
+require 'universal_importer/utils'
 require 'universal_importer/assimp'
 require 'universal_importer/meshlab'
 
@@ -66,11 +69,7 @@ module UniversalImporter
         # Aborts if user cancelled operation.
         return if @import_file_path.nil?
 
-        prevent_big_copy_issue
-
         import_texture_atlas
-
-        ask_for_poly_reduction
 
         ask_for_model_height
 
@@ -81,6 +80,8 @@ module UniversalImporter
         fix_e_tex_in_obj_export
 
         fix_atlas_in_obj_export
+
+        ask_for_poly_reduction
 
         apply_polygon_reduction
 
@@ -137,58 +138,6 @@ module UniversalImporter
 
     end
 
-    # Prevents "big copy" issue.
-    #
-    # @raise [StandardError]
-    #
-    # @return [nil]
-    def prevent_big_copy_issue
-
-      # Directory separator count relative to user's home directory.
-      home_rel_dir_sep_count = 0
-
-      if Sketchup.platform == :platform_osx
-
-        if @import_file_path.start_with?(ENV['HOME'])
-
-          home_rel_dir_sep_count =\
-            @import_file_path.sub(ENV['HOME'], '').count('/')
-
-        end
-
-      elsif Sketchup.platform == :platform_win
-
-        if @import_file_path.start_with?(ENV['USERPROFILE'])
-
-          home_rel_dir_sep_count =\
-            @import_file_path.sub(ENV['USERPROFILE'], '').count('\\')
-
-        end
-
-      else
-
-        raise StandardError.new(
-          'Unsupported platform: ' + Sketchup.platform.to_s
-        )
-
-      end
-
-      # If model is located at /Users/someuser/some_model.fbx
-      # or else at /Users/someuser/Some Folder/some_model.fbx:
-      if home_rel_dir_sep_count.between?(1, 2)
-
-        raise StandardError.new(
-          'Model can\'t be loaded from this path: ' +
-          File.dirname(@import_file_path) + "\n" +
-          'Move model and textures to a sub folder.'
-        )
-
-      end
-
-      nil
-
-    end
-
     # Imports optional texture atlas of 3D model.
     #
     # @return [nil, String]
@@ -200,33 +149,6 @@ module UniversalImporter
         TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;||'
 
       )
-
-    end
-
-    # Asks user for polygon reduction.
-    #
-    # @return [nil]
-    def ask_for_poly_reduction
-
-      @poly_reduction_params = nil
-
-      poly_reduction_answer = UI.messagebox(
-        TRANSLATE['Do you want to reduce polygon count?'], MB_YESNO
-      )
-
-      if poly_reduction_answer == IDYES
-
-        @poly_reduction_params = UI.inputbox(
-
-          [ TRANSLATE['Target face number'] + ' ' ], # Prompt
-          [ 40000 ], # Default
-          TRANSLATE['Polygon Reduction'] + ' - ' + NAME # Title
-
-        )
-
-      end
-
-      nil
 
     end
 
@@ -266,6 +188,12 @@ module UniversalImporter
     # @return [nil]
     def copy_to_prog_data_dir
 
+      # Memorizes source directory.
+
+      @source_dir = File.dirname(@import_file_path)
+
+      # Resets temp directory.
+
       FileUtils.mkdir_p(prog_data_dir)\
         unless File.exist?(prog_data_dir)
 
@@ -274,19 +202,16 @@ module UniversalImporter
       FileUtils.remove_dir(SESSION[:temp_dir])\
         if File.exist?(SESSION[:temp_dir])
 
-      FileUtils.copy_entry(
-        File.dirname(@import_file_path), # source
+      FileUtils.mkdir_p(SESSION[:temp_dir])
+
+      # Copies 3D model to temp directory.
+
+      FileUtils.cp(
+        @import_file_path, # source
         SESSION[:temp_dir] # destination
       )
 
-      if !@import_texture_atlas_file_path.nil?
-
-        FileUtils.cp(
-          @import_texture_atlas_file_path,
-          SESSION[:temp_dir]
-        )
-
-      end
+      # Renames 3D model in place.
 
       temp_import_file_path = File.join(
         SESSION[:temp_dir],
@@ -299,6 +224,81 @@ module UniversalImporter
       )
 
       File.rename(temp_import_file_path, @import_file_path)
+
+      # If they exist: copies glTF binary buffers to temp directory.
+
+      if @import_file_path.end_with?('.gltf')\
+        || @import_file_path.end_with?('.GLTF')
+
+        gltf = GlTF.new(@import_file_path)
+
+        gltf_buffers_paths = gltf.buffers_paths
+
+        if !gltf_buffers_paths.empty?
+
+          gltf_buffers_paths.each do |buffer_path|
+
+            Utils.mkdir_and_copy_file(
+              File.join(@source_dir, buffer_path),
+              File.join(SESSION[:temp_dir], buffer_path) # destination
+            )
+
+          end
+
+        end
+
+      end
+
+      # If it exists: copies OBJ material library to temp directory.
+
+      if @import_file_path.end_with?('.obj')\
+        || @import_file_path.end_with?('.OBJ')
+
+        obj = OBJ.new(@import_file_path)
+
+        obj_mtl_path = obj.mtl_path
+
+        if obj_mtl_path.is_a?(String)
+
+          Utils.mkdir_and_copy_file(
+            File.join(@source_dir, obj_mtl_path),
+            File.join(SESSION[:temp_dir], obj_mtl_path) # destination
+          )
+
+        end
+
+      end
+
+      # If they exist: copies referenced textures to temp directory.
+
+      texture_refs = Assimp.get_texture_refs(
+        @import_file_path,
+        File.join(SESSION[:temp_dir], 'assimp.nfo')
+      )
+
+      if !texture_refs.empty?
+
+        texture_refs.each do |texture_path|
+
+          Utils.mkdir_and_copy_file(
+            File.join(@source_dir, texture_path),
+            File.join(SESSION[:temp_dir], texture_path) # destination
+          )
+
+        end
+
+      end
+
+      # If it exists: copies texture atlas to temp directory.
+
+      if !@import_texture_atlas_file_path.nil?
+
+        FileUtils.cp(
+          @import_texture_atlas_file_path, # source
+          SESSION[:temp_dir] # destination
+        )
+
+      end
 
       nil
 
@@ -398,6 +398,39 @@ module UniversalImporter
       obj_mtl_export += File.basename(@import_texture_atlas_file_path)
 
       File.write(obj_mtl_export_file_path, obj_mtl_export)
+
+      nil
+
+    end
+
+    # Asks user for polygon reduction.
+    #
+    # @return [nil]
+    def ask_for_poly_reduction
+
+      @poly_reduction_params = nil
+
+      model_face_count = Assimp.get_face_count(
+        File.join(SESSION[:temp_dir], 'assimp.nfo')
+      )
+
+      poly_reduction_answer = UI.messagebox(
+        TRANSLATE['Model has'] + ' ' + model_face_count.to_s +
+        ' ' + TRANSLATE['faces'] + '.' + "\n" +
+        TRANSLATE['Reduce polygon count?'], MB_YESNO
+      )
+
+      if poly_reduction_answer == IDYES
+
+        @poly_reduction_params = UI.inputbox(
+
+          [ TRANSLATE['Target face number'] + ' ' ], # Prompt
+          [ 40000 ], # Default
+          TRANSLATE['Polygon Reduction'] + ' - ' + NAME # Title
+
+        )
+
+      end
 
       nil
 
