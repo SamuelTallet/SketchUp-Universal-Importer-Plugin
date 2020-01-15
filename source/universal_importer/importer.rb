@@ -280,6 +280,8 @@ module UniversalImporter
 
         texture_refs.each do |texture_path|
 
+          next unless File.exist?(File.join(@source_dir, texture_path))
+
           Utils.mkdir_and_copy_file(
             File.join(@source_dir, texture_path),
             File.join(SESSION[:temp_dir], texture_path) # destination
