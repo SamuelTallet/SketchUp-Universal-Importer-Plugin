@@ -26,6 +26,7 @@ require 'universal_importer/gltf'
 require 'universal_importer/obj'
 require 'universal_importer/utils'
 require 'universal_importer/assimp'
+require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
 
 # Universal Importer plugin namespace.
@@ -69,8 +70,6 @@ module UniversalImporter
         # Aborts if user cancelled operation.
         return if @import_file_path.nil?
 
-        import_texture_atlas
-
         ask_for_model_height
 
         copy_to_prog_data_dir
@@ -79,7 +78,7 @@ module UniversalImporter
 
         fix_e_tex_in_obj_export
 
-        fix_atlas_in_obj_export
+        fix_m_tex_in_obj_export
 
         ask_for_poly_reduction
 
@@ -135,20 +134,6 @@ module UniversalImporter
         unless @import_file_path.nil?
 
       nil
-
-    end
-
-    # Imports optional texture atlas of 3D model.
-    #
-    # @return [nil, String]
-    def import_texture_atlas
-
-      @import_texture_atlas_file_path = UI.openpanel(
-
-        TRANSLATE['Select a Texture Atlas (Optional)'], nil,
-        TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;||'
-
-      )
 
     end
 
@@ -321,7 +306,7 @@ module UniversalImporter
 
     end
 
-    # Fixes embedded textures in Assimp OBJ export?
+    # If they exist: fixes embedded textures in Assimp OBJ export.
     #
     # @return [nil]
     def fix_e_tex_in_obj_export
@@ -383,23 +368,41 @@ module UniversalImporter
 
     end
 
-    # Fixes texture atlas in Assimp OBJ export?
+    # If they exist: fixes missing textures in Assimp OBJ export.
     #
     # @return [nil]
-    def fix_atlas_in_obj_export
-
-      return if @import_texture_atlas_file_path.nil?
+    def fix_m_tex_in_obj_export
 
       obj_mtl_export_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
 
-      obj_mtl_export = File.read(obj_mtl_export_file_path)
+      mtl = MTL.new(obj_mtl_export_file_path)
 
-      obj_mtl_export += "\n"
+      mtl_materials_wo_textures = mtl.materials_wo_textures
 
-      obj_mtl_export += 'map_Kd '
-      obj_mtl_export += File.basename(@import_texture_atlas_file_path)
+      return if mtl_materials_wo_textures.empty?
 
-      File.write(obj_mtl_export_file_path, obj_mtl_export)
+      mtl_materials_wo_textures.each do |material_name|
+
+        texture_path = UI.openpanel(
+
+          TRANSLATE['Select a Texture for Material:'] + ' ' + material_name,
+          nil, TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;||'
+
+        )
+
+        # Skips if user cancelled...
+        next if texture_path.nil?
+
+        FileUtils.cp(
+          texture_path, # source
+          SESSION[:temp_dir] # destination
+        )
+
+        mtl.set_material_texture(material_name, File.basename(texture_path))
+
+      end
+
+      File.write(obj_mtl_export_file_path, mtl.rebuilt_file_contents)
 
       nil
 

@@ -26,7 +26,7 @@ require 'extensions'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.2'.freeze
+  VERSION = '1.1.3'.freeze
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.strings')

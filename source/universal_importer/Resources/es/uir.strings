@@ -26,14 +26,14 @@
 
 "Select a 3D Model"="Seleccionar un Modelo 3D";
 "3D Models"="Modelos 3D";
-"Select a Texture Atlas (Optional)"="Seleccionar un Atlas de Texturas (Opcional)";
+"Model height (cm)"="Altura del modelo (cm)";
+"Select a Texture for Material:"="Seleccionar una Textura para el Material:";
 "Images"="Imágenes";
 "Model has"="El modelo tiene";
 "faces"="caras";
 "Reduce polygon count?"="¿Reducir la cantidad de polígonos?";
 "Target face number"="Número de caras objetivo";
 "Polygon Reduction"="Reducción de Polígonos";
-"Model height (cm)"="Altura del modelo (cm)";
 
 //
 // File: menu.rb
