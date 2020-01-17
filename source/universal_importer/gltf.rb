@@ -41,7 +41,7 @@ module UniversalImporter
 
     end
 
-    # Returns buffers paths if they exist.
+    # If they exist: returns buffers paths.
     #
     # @return [Array<String>]
     def buffers_paths

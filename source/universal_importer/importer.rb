@@ -94,6 +94,8 @@ module UniversalImporter
 
           export_to_dae_format
 
+          fix_faces_in_dae_export
+
           import_from_dae_format
 
         end
@@ -164,11 +166,10 @@ module UniversalImporter
 
     end
 
-    # Copies 3D model, textures and texture atlas to
+    # Copies textures, 3D model & associated files to
     # Universal Importer program data temp directory.
     #
     # XXX Required to avoid invalid characters in path.
-    # Assimp doesn't support whitespaces in path (mac).
     #
     # @return [nil]
     def copy_to_prog_data_dir
@@ -196,7 +197,8 @@ module UniversalImporter
         SESSION[:temp_dir] # destination
       )
 
-      # Renames 3D model in place.
+      # Renames 3D model without whitespace.
+      # XXX Assimp doesn't support whitespaces in path (macOS).
 
       temp_import_file_path = File.join(
         SESSION[:temp_dir],
@@ -273,17 +275,6 @@ module UniversalImporter
           )
 
         end
-
-      end
-
-      # If it exists: copies texture atlas to temp directory.
-
-      if !@import_texture_atlas_file_path.nil?
-
-        FileUtils.cp(
-          @import_texture_atlas_file_path, # source
-          SESSION[:temp_dir] # destination
-        )
 
       end
 
@@ -503,6 +494,25 @@ module UniversalImporter
         File.join(SESSION[:temp_dir], 'assimp.log')
       )
       
+    end
+
+    # Fix faces in DAE export.
+    #
+    # @return [nil]
+    def fix_faces_in_dae_export
+
+      dae_export = File.read(@dae_export_file_path)
+
+      double_sided_face_fix = '<extra><technique profile="GOOGLEEARTH">'
+      double_sided_face_fix += '<double_sided>1</double_sided>'
+      double_sided_face_fix += "</technique></extra>\n</profile_COMMON>"
+
+      dae_export.gsub!('</profile_COMMON>', double_sided_face_fix)
+
+      File.write(@dae_export_file_path, dae_export)
+
+      nil
+
     end
 
     # Imports 3D model from DAE format.
