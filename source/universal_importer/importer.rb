@@ -1,5 +1,5 @@
-# Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2019 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Universal Importer (UIR) extension for SketchUp 2017 or newer.
+# Copyright: © 2020 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -347,6 +347,20 @@ module UniversalImporter
               'import_img' + texture_index.to_s + '.bmp'
             )
 
+          elsif File.exist?(texture_image_base_path + '.tga')
+
+            obj_mtl_export.gsub!(
+              '*' + texture_index.to_s,
+              'import_img' + texture_index.to_s + '.tga'
+            )
+
+          elsif File.exist?(texture_image_base_path + '.tif')
+
+            obj_mtl_export.gsub!(
+              '*' + texture_index.to_s,
+              'import_img' + texture_index.to_s + '.tif'
+            )
+
           end
 
         end
@@ -377,7 +391,7 @@ module UniversalImporter
         texture_path = UI.openpanel(
 
           TRANSLATE['Select a Texture for Material:'] + ' ' + material_name,
-          nil, TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;||'
+          nil, TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;*.tga;*.tif;||'
 
         )
 
