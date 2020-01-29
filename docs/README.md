@@ -88,4 +88,4 @@ This plugin relies on [Assimp library](https://github.com/assimp/assimp) and [Me
 Copyright
 ---------
 
-© 2019 Samuel Tallet
+© 2020 Samuel Tallet
