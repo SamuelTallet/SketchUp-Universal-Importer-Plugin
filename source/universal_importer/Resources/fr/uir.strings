@@ -26,7 +26,7 @@
 
 "Select a 3D Model"="Sélectionner un modèle 3D";
 "3D Models"="Modèles 3D";
-"Model height (cm)"="Hauteur du modèle (cm)";
+"Model height (mm)"="Hauteur du modèle (mm)";
 "Select a Texture for Material:"="Sélectionner une texture pour le matériau :";
 "Images"="Images";
 "Model has"="Le modèle a";

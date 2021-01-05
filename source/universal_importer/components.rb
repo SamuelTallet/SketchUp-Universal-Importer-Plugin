@@ -47,7 +47,7 @@ module UniversalImporter
       component_bounds = component.bounds
 
       component_height = (component_bounds.max.z - component_bounds.min.z)\
-        .to_l.to_cm.to_i
+        .to_l.to_mm.to_i
 
       return if component_height == target_height
 
@@ -67,16 +67,16 @@ module UniversalImporter
           component_bounds = component.bounds
 
           component_height = (component_bounds.max.z - component_bounds.min.z)\
-            .to_l.to_cm.to_i
+            .to_l.to_mm.to_i
 
-          if component_scale <= 0.00001\
-            || component_height.between?(target_height - 5, target_height + 5)
+          if component_scale <= 0.0000001\
+            || component_height.between?(target_height - 1, target_height + 1)
             
             break
 
           end
 
-          component_scale -= 0.00001
+          component_scale -= 0.0000001
 
           # Resets scale.
           component.transform!(

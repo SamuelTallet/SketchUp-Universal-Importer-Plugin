@@ -144,21 +144,21 @@ module UniversalImporter
     # @return [nil]
     def ask_for_model_height
 
-      model_height_in_cm = UI.inputbox(
+      model_height_in_mm = UI.inputbox(
 
-        [ TRANSLATE['Model height (cm)'] + ' ' ], # Prompt
-        [ 180 ], # Default
+        [ TRANSLATE['Model height (mm)'] + ' ' ], # Prompt
+        [ 1800 ], # Default
         NAME # Title
 
       )
 
-      if model_height_in_cm.is_a?(Array)
+      if model_height_in_mm.is_a?(Array)
 
-        SESSION[:model_height_in_cm] = model_height_in_cm[0].to_i
+        SESSION[:model_height_in_mm] = model_height_in_mm[0].to_i
 
       else
 
-        SESSION[:model_height_in_cm] = 180
+        SESSION[:model_height_in_mm] = 1800
 
       end
 

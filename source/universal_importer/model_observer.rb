@@ -33,11 +33,11 @@ module UniversalImporter
     def onPlaceComponent(component)
 
       # Scales component according to user input.
-      if !SESSION[:model_height_in_cm].nil?
+      if !SESSION[:model_height_in_mm].nil?
 
-        Components.scale_down(component, SESSION[:model_height_in_cm])
+        Components.scale_down(component, SESSION[:model_height_in_mm])
 
-        SESSION[:model_height_in_cm] = nil
+        SESSION[:model_height_in_mm] = nil
 
         Sketchup.active_model.active_view.zoom_extents
 
