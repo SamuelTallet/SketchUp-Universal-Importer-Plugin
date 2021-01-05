@@ -20,48 +20,23 @@
 raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
   unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
 
-require 'sketchup'
-require 'extensions'
+require 'fileutils'
+require 'universal_importer/assimp'
+require 'universal_importer/meshlab'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.6'.freeze
+  # On MacOS...
+  module MacOS
 
-  # Load translation if it's available for current locale.
-  TRANSLATE = LanguageHandler.new('uir.strings')
-  # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.strings"
+    # Fixes file permissions.
+    def self.fix_file_permissions
 
-  # Remember extension name. See: UniversalImporter::Menu.
-  NAME = TRANSLATE['Universal Importer']
+      FileUtils.chmod('+x', Assimp.exe)
+      FileUtils.chmod('+x', MeshLab.exe)
 
-  # Initialize session storage of Universal Importer plugin.
-  SESSION = nil.to_h
-
-  # Register extension.
-
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
-
-  extension.version     = VERSION
-  extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2021 #{extension.creator}"
-
-  features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
-    TRANSLATE['Reduce polygon count on the fly.']
-  ]
-
-  extension.description = features.join(' ')
-
-  Sketchup.register_extension(
-    extension,
-    true # load_at_start
-  )
-
-  if Sketchup.platform == :platform_osx
-
-    require 'universal_importer/macos'
-    MacOS.fix_file_permissions
+    end
 
   end
 

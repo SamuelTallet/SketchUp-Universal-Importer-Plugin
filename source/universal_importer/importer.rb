@@ -1,5 +1,5 @@
 # Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2020 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Copyright: © 2021 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
