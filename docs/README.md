@@ -64,17 +64,16 @@ Supported formats
 - XGL
 - ZGL
 
-Installation
-------------
+Documentation
+-------------
+
+### How to install this plugin?
 
 1. Be sure to have SketchUp 2017 or newer.
 2. Download latest Universal Importer plugin from the [SketchUcation PluginStore](https://sketchucation.com/plugin/2275-universal_importer).
-3. Install plugin following this [guide](https://help.sketchup.com/article/3000263).
+3. Install plugin following this [guide](https://www.youtube.com/watch?v=tyM5f81eRno).
 
 Now, you should have in SketchUp an "Import with Universal Importer..." entry in "File" menu and an "Universal Importer" toolbar.
-
-Documentation
--------------
 
 ### I'm getting an error when I try to import a model. What can I do?
 
