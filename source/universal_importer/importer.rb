@@ -1,5 +1,5 @@
 # Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2021 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Copyright: © 2022 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -120,15 +120,9 @@ module UniversalImporter
       @import_file_path = UI.openpanel(
 
         TRANSLATE['Select a 3D Model'], nil, TRANSLATE['3D Models'] +
-        '|*.3d;*.3ds;*.3mf;*.ac;*.ac3d;*.acc;*.amf;*.ase;*.ask;' +
-        '*.assbin;*.b3d;*.blend;*.bvh;*.cob;*.csm;*.dae;*.dxf;' +
-        '*.enff;*.fbx;*.glb;*.gltf;*.hmp;*.ifc;*.ifczip;*.irr;' +
-        '*.irrmesh;*.lwo;*.lws;*.lxo;*.md2;*.md3;*.md5anim;' +
-        '*.md5camera;*.md5mesh;*.mdc;*.mdl;*.mesh;*.mesh.xml;' +
-        '*.mot;*.ms3d;*.ndo;*.nff;*.obj;*.off;*.ogex;*.pk3;' +
-        '*.ply;*.pmx;*.prj;*.q3o;*.q3s;*.raw;*.scn;*.sib;*.smd;' +
-        '*.stl;*.stp;*.ter;*.uc;*.vta;*.x;*.x3d;*.x3db;*.xgl;' +
-        '*.xml;*.zae;*.zgl;||'
+        '|' +
+        '*.3d;*.3ds;*.3mf;*.ac;*.ac3d;*.acc;*.amf;*.ase;*.ask;*.assbin;*.b3d;*.blend;*.bsp;*.bvh;*.cob;*.csm;*.dae;*.dxf;*.enff;*.fbx;*.glb;*.gltf;*.hmp;*.ifc;*.ifczip;*.irr;*.irrmesh;*.lwo;*.lws;*.lxo;*.md2;*.md3;*.md5anim;*.md5camera;*.md5mesh;*.mdc;*.mdl;*.mesh;*.mesh.xml;*.mot;*.ms3d;*.ndo;*.nff;*.obj;*.off;*.ogex;*.pk3;*.ply;*.pmx;*.prj;*.q3o;*.q3s;*.raw;*.scn;*.sib;*.smd;*.step;*.stl;*.stp;*.ter;*.uc;*.vta;*.x;*.x3d;*.x3db;*.xgl;*.xml;*.zae;*.zgl' +
+        ';||'
 
       )
 
@@ -214,8 +208,7 @@ module UniversalImporter
 
       # If they exist: copies glTF binary buffers to temp directory.
 
-      if @import_file_path.end_with?('.gltf')\
-        || @import_file_path.end_with?('.GLTF')
+      if @import_file_path.downcase.end_with?('.gltf')
 
         gltf = GlTF.new(@import_file_path)
 
@@ -238,8 +231,7 @@ module UniversalImporter
 
       # If it exists: copies OBJ material library to temp directory.
 
-      if @import_file_path.end_with?('.obj')\
-        || @import_file_path.end_with?('.OBJ')
+      if @import_file_path.downcase.end_with?('.obj')
 
         obj = OBJ.new(@import_file_path)
 

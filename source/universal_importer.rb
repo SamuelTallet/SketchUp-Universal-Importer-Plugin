@@ -1,5 +1,5 @@
 # Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2021 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Copyright: © 2022 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ require 'extensions'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.1.6'.freeze
+  VERSION = '1.1.7'.freeze
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.strings')
@@ -44,7 +44,7 @@ module UniversalImporter
 
   extension.version     = VERSION
   extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2021 #{extension.creator}"
+  extension.copyright   = "© 2022 #{extension.creator}"
 
   features = [
     TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
