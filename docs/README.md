@@ -77,7 +77,7 @@ Now, you should have in SketchUp an "Import with Universal Importer..." entry in
 
 ### I'm getting an error when I try to import a model. What can I do?
 
-First, (re)install [Microsoft Visual C++ library](https://aka.ms/vs/16/release/vc_redist.x64.exe). If problem persists, report bug [here](https://github.com/SamuelTS/SketchUp-Universal-Importer-Plugin/issues) or [there](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951).
+First, (re)install [Microsoft Visual C++ library](https://aka.ms/vs/16/release/vc_redist.x64.exe). If problem persists, report bug [here](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) or [there](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951).
 
 Thanks
 ------
