@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2019 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Copyright: © 2022 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,22 +27,24 @@ require 'universal_importer/importer'
 module UniversalImporter
 
   # Connects Universal Importer plugin menu to SketchUp user interface.
-  class Menu
+  module Menu
 
-    # Adds Universal Importer plugin menu in a SketchUp menu.
-    #
-    # @param [Sketchup::Menu] parent_menu Target parent menu.
-    # @raise [ArgumentError]
-    def initialize(parent_menu)
+    # Adds menu.
+    def self.add
 
-      raise ArgumentError, 'Parent menu must be a SketchUp::Menu.'\
-        unless parent_menu.is_a?(Sketchup::Menu)
-
-      parent_menu.add_item(TRANSLATE['Import with'] + ' ' + NAME + '...') {
+      file_menu = UI.menu('File')
+      file_menu.add_item(TRANSLATE['Import with'] + ' ' + NAME + '...') do
 
         Importer.new
 
-      }
+      end
+
+      plugin_menu = UI.menu('Plugins').add_submenu(NAME)
+      plugin_menu.add_item('💌 ' + TRANSLATE['Donate to Plugin Author']) do
+
+        UI.openURL('https://www.paypal.me/SamuelTallet')
+
+      end
 
     end
 

@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2019 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Copyright: © 2022 Samuel Tallet <samuel.tallet arobase gmail.com>
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,12 +32,7 @@ module UniversalImporter
   Sketchup.add_observer(AppObserver.new)
   Sketchup.active_model.add_observer(ModelObserver.new)
 
-  # Plugs Universal Importer menu into SketchUp UI.
-
-  Menu.new(
-    UI.menu('File') # parent_menu
-  )
-
+  Menu.add
   Toolbar.new.prepare.show
 
   # Load complete.
