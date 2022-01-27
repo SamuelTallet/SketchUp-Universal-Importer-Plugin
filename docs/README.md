@@ -87,4 +87,4 @@ This plugin relies on [Assimp library](https://github.com/assimp/assimp) and [Me
 Copyright
 ---------
 
-© 2021 Samuel Tallet
+© 2022 Samuel Tallet
