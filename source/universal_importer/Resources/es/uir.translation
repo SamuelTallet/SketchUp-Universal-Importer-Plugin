@@ -1,10 +1,10 @@
 
-////////////////////////////////////////////
+//////////////////////////////////////////////
 // Universal Importer Spanish Translation.
 //
 // Package: UIR extension for SketchUp
-// Translation author: Óscar Hernández
-////////////////////////////////////////////
+// Translation authors: Óscar Hernández, DeepL
+//////////////////////////////////////////////
 
 //
 // File: universal_importer.rb
@@ -40,7 +40,11 @@
 //
 
 "Import with"="Importar con";
-"Donate to Plugin Author"="Donar al Autor del Plugin";
+"Import a 3D Model..."="Importar un Modelo 3D...";
+"Propose Polygon Reduction"="Proponer la Reducción de Polígonos";
+"Claim Missing Textures"="Reclamar las Texturas que Faltan";
+"Donate to Plugin Author"="Donar al Autor del Extensión";
+"Plugins of Same Author"="Extensións del Mismo Autor";
 
 //
 // File: model_observer.rb

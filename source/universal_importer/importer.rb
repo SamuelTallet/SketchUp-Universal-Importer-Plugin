@@ -1,27 +1,20 @@
-# Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet arobase gmail.com>
+# Universal Importer extension for SketchUp 2017 or newer.
+# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3.0 of the License, or
-# (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
 # 
-# If you release a modified version of this program TO THE PUBLIC,
-# the GPL requires you to MAKE THE MODIFIED SOURCE CODE AVAILABLE
-# to the program's users, UNDER THE GPL.
+# If you release a modified version of this program TO THE PUBLIC, the GPL requires you to MAKE THE MODIFIED SOURCE CODE
+# AVAILABLE to the program's users, UNDER THE GPL.
 # 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
-raise 'The UIR plugin requires at least Ruby 2.2.0 or SketchUp 2017.'\
-  unless RUBY_VERSION.to_f >= 2.2 # SketchUp 2017 includes Ruby 2.2.4.
-
 require 'sketchup'
 require 'fileutils'
+require 'universal_importer/options'
 require 'universal_importer/gltf'
 require 'universal_importer/obj'
 require 'universal_importer/utils'
@@ -51,11 +44,7 @@ module UniversalImporter
         return File.join(ENV['PROGRAMDATA'], 'Universal Importer')
 
       else
-
-        raise StandardError.new(
-          'Unsupported platform: ' + Sketchup.platform.to_s
-        )
-
+        raise StandardError.new('Unsupported platform: ' + Sketchup.platform.to_s)
       end
 
     end
@@ -67,54 +56,49 @@ module UniversalImporter
 
         import_from_any_format
 
-        # Aborts if user cancelled operation.
+        # Aborts if user cancelled import.
         return if @import_file_path.nil?
 
-        ask_for_model_height
-
-        copy_to_prog_data_dir
-
+        copy_to_program_data_dir
         export_to_obj_format
+        fix_embedded_tex_in_obj_export
 
-        fix_e_tex_in_obj_export
+        ask_for_missing_tex_in_obj_export if Options.claim_missing_textures?
 
-        fix_m_tex_in_obj_export
+        if Options.propose_polygon_reduction?
+          ask_for_polygon_reduction
+          apply_polygon_reduction
+        end
 
-        ask_for_poly_reduction
-
-        apply_polygon_reduction
+        # @todo Remove this @deprecated hack.
+        #ask_for_model_height
 
         if Sketchup.platform == :platform_osx
 
           export_to_3ds_format
-
           import_from_3ds_format
 
         else
 
           export_to_dae_format
-
-          fix_faces_in_dae_export
-
+          fix_unit_and_faces_in_dae_export
           import_from_dae_format
 
         end
         
       rescue StandardError => exception
-        
+
         UI.messagebox(
           'Universal Importer Error: ' + exception.message +
           "\n" + exception.backtrace.first.to_s + "\n" +
           "\n" + 'Universal Importer Version: ' + VERSION
         )
-        
+
       end
 
     end
 
     # Imports "any" 3D model.
-    #
-    # @return [nil]
     def import_from_any_format
 
       @import_file_path = UI.openpanel(
@@ -129,47 +113,15 @@ module UniversalImporter
       SESSION[:source_filename] = File.basename(@import_file_path)\
         unless @import_file_path.nil?
 
-      nil
-
-    end
-
-    # Asks user for model height.
-    #
-    # @return [nil]
-    def ask_for_model_height
-
-      model_height_in_mm = UI.inputbox(
-
-        [ TRANSLATE['Model height (mm)'] + ' ' ], # Prompt
-        [ 1800 ], # Default
-        NAME # Title
-
-      )
-
-      if model_height_in_mm.is_a?(Array)
-
-        SESSION[:model_height_in_mm] = model_height_in_mm[0].to_i
-
-      else
-
-        SESSION[:model_height_in_mm] = 1800
-
-      end
-
-      nil
-
     end
 
     # Copies textures, 3D model & associated files to
     # Universal Importer program data temp directory.
     #
     # XXX Required to avoid invalid characters in path.
-    #
-    # @return [nil]
-    def copy_to_prog_data_dir
+    def copy_to_program_data_dir
 
       # Memorizes source directory.
-
       @source_dir = File.dirname(@import_file_path)
 
       # Resets temp directory.
@@ -185,7 +137,6 @@ module UniversalImporter
       FileUtils.mkdir_p(SESSION[:temp_dir])
 
       # Copies 3D model to temp directory.
-
       FileUtils.cp(
         @import_file_path, # source
         SESSION[:temp_dir] # destination
@@ -259,6 +210,7 @@ module UniversalImporter
 
         texture_refs.each do |texture_path|
 
+          # @todo Check also if texture file exists in neighbor folders.
           next unless File.exist?(File.join(@source_dir, texture_path))
 
           Utils.mkdir_and_copy_file(
@@ -270,13 +222,9 @@ module UniversalImporter
 
       end
 
-      nil
-
     end
 
     # Exports 3D model to OBJ format.
-    #
-    # @return [nil]
     def export_to_obj_format
 
       @obj_export_file_path = File.join(SESSION[:temp_dir], 'export.obj')
@@ -290,9 +238,8 @@ module UniversalImporter
     end
 
     # If they exist: fixes embedded textures in Assimp OBJ export.
-    #
-    # @return [nil]
-    def fix_e_tex_in_obj_export
+    # @todo Fix also incorrect paths of referenced textures.
+    def fix_embedded_tex_in_obj_export
 
       obj_mtl_export_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
 
@@ -306,8 +253,9 @@ module UniversalImporter
           File.join(SESSION[:temp_dir], 'assimp.log')
         )
 
+        texture_extensions = [] # @todo Fill this array.
         texture_index = 1000
-
+        
         1000.times do
 
           texture_index -= 1
@@ -317,6 +265,8 @@ module UniversalImporter
           texture_image_base_path = File.join(
             SESSION[:temp_dir], 'import_img' + texture_index.to_s
           )
+
+          # @todo Iterate over texture_extensions.
 
           if File.exist?(texture_image_base_path + '.jpg')
 
@@ -361,14 +311,10 @@ module UniversalImporter
 
       end
 
-      nil
-
     end
 
-    # If they exist: fixes missing textures in Assimp OBJ export.
-    #
-    # @return [nil]
-    def fix_m_tex_in_obj_export
+    # If they exist: asks user for missing textures in Assimp OBJ export.
+    def ask_for_missing_tex_in_obj_export
 
       obj_mtl_export_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
 
@@ -401,14 +347,10 @@ module UniversalImporter
 
       File.write(obj_mtl_export_file_path, mtl.rebuilt_file_contents)
 
-      nil
-
     end
 
     # Asks user for polygon reduction.
-    #
-    # @return [nil]
-    def ask_for_poly_reduction
+    def ask_for_polygon_reduction
 
       @poly_reduction_params = nil
 
@@ -434,16 +376,12 @@ module UniversalImporter
 
       end
 
-      nil
-
     end
 
     # Applies polygon reduction on Assimp OBJ export.
-    #
-    # @return [nil]
     def apply_polygon_reduction
 
-      return nil unless @poly_reduction_params.is_a?(Array)
+      return unless @poly_reduction_params.is_a?(Array)
 
       obj_mtl_export = File.read(File.join(SESSION[:temp_dir], 'export.mtl'))
 
@@ -463,9 +401,23 @@ module UniversalImporter
 
     end
 
+    # Asks user for model height.
+    def ask_for_model_height
+
+      model_height_in_mm = UI.inputbox(
+        [ TRANSLATE['Model height (mm)'] + ' ' ], # Prompt
+        [ 1800 ], # Default
+        NAME # Title
+      )
+
+      if model_height_in_mm.is_a?(Array)
+        # Model will be resized according to user input.
+        SESSION[:model_height_in_mm] = model_height_in_mm[0].to_i
+      end
+
+    end
+
     # Exports 3D model to 3DS format.
-    #
-    # @return [nil]
     def export_to_3ds_format
 
       @tds_export_file_path = File.join(SESSION[:temp_dir], 'export.3ds')
@@ -479,8 +431,6 @@ module UniversalImporter
     end
 
     # Imports 3D model from 3DS format.
-    #
-    # @return [true, false]
     def import_from_3ds_format
 
       Sketchup.active_model.import(@tds_export_file_path)
@@ -488,8 +438,6 @@ module UniversalImporter
     end
 
     # Exports 3D model to DAE format.
-    #
-    # @return [nil]
     def export_to_dae_format
 
       @dae_export_file_path = File.join(SESSION[:temp_dir], 'export.dae')
@@ -502,12 +450,18 @@ module UniversalImporter
       
     end
 
-    # Fix faces in DAE export.
-    #
-    # @return [nil]
-    def fix_faces_in_dae_export
+    # Fix unit and faces in DAE export.
+    def fix_unit_and_faces_in_dae_export
 
       dae_export = File.read(@dae_export_file_path)
+
+      dae_export.insert(0, "<!-- File modified by Universal Importer plugin for SketchUp. -->\n")
+
+      unit_fix = '<asset>' + "\n"
+      # It seems only first unit tag is accounted by SketchUp importer.
+      unit_fix += "\t\t" + '<unit name="inch" meter="0.0254" />'
+
+      dae_export.sub!('<asset>', unit_fix)
 
       double_sided_face_fix = '<extra><technique profile="GOOGLEEARTH">'
       double_sided_face_fix += '<double_sided>1</double_sided>'
@@ -517,13 +471,9 @@ module UniversalImporter
 
       File.write(@dae_export_file_path, dae_export)
 
-      nil
-
     end
 
     # Imports 3D model from DAE format.
-    #
-    # @return [Boolean]
     def import_from_dae_format
 
       Sketchup.active_model.import(@dae_export_file_path)
