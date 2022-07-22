@@ -18,6 +18,7 @@ require 'universal_importer/options'
 require 'universal_importer/gltf'
 require 'universal_importer/obj'
 require 'universal_importer/utils'
+require 'universal_importer/fs'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
@@ -29,6 +30,8 @@ module UniversalImporter
   class Importer
 
     # Returns absolute path to Universal Importer program data directory.
+    #
+    # @deprecated
     #
     # @raise [StandardError]
     #
@@ -59,9 +62,12 @@ module UniversalImporter
         # Aborts if user cancelled import.
         return if @import_file_path.nil?
 
+        @source_dir = File.dirname(@import_file_path)
         copy_to_program_data_dir
+
         export_to_obj_format
         fix_embedded_tex_in_obj_export
+        fix_referenced_tex_in_inter_mtl
 
         ask_for_missing_tex_in_obj_export if Options.claim_missing_textures?
 
@@ -70,7 +76,7 @@ module UniversalImporter
           apply_polygon_reduction
         end
 
-        # @todo Remove this @deprecated hack.
+        # @todo Remove this @deprecated hack?
         #ask_for_model_height
 
         if Sketchup.platform == :platform_osx
@@ -118,11 +124,11 @@ module UniversalImporter
     # Copies textures, 3D model & associated files to
     # Universal Importer program data temp directory.
     #
+    # @deprecated
+    # @see https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues/8
+    #
     # XXX Required to avoid invalid characters in path.
     def copy_to_program_data_dir
-
-      # Memorizes source directory.
-      @source_dir = File.dirname(@import_file_path)
 
       # Resets temp directory.
 
@@ -199,29 +205,6 @@ module UniversalImporter
 
       end
 
-      # If they exist: copies referenced textures to temp directory.
-
-      texture_refs = Assimp.get_texture_refs(
-        @import_file_path,
-        File.join(SESSION[:temp_dir], 'assimp.nfo')
-      )
-
-      if !texture_refs.empty?
-
-        texture_refs.each do |texture_path|
-
-          # @todo Check also if texture file exists in neighbor folders.
-          next unless File.exist?(File.join(@source_dir, texture_path))
-
-          Utils.mkdir_and_copy_file(
-            File.join(@source_dir, texture_path),
-            File.join(SESSION[:temp_dir], texture_path) # destination
-          )
-
-        end
-
-      end
-
     end
 
     # Exports 3D model to OBJ format.
@@ -238,11 +221,9 @@ module UniversalImporter
     end
 
     # If they exist: fixes embedded textures in Assimp OBJ export.
-    # @todo Fix also incorrect paths of referenced textures.
     def fix_embedded_tex_in_obj_export
 
       obj_mtl_export_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
-
       obj_mtl_export = File.read(obj_mtl_export_file_path)
 
       # If MTL file references at least one embedded texture:
@@ -253,7 +234,7 @@ module UniversalImporter
           File.join(SESSION[:temp_dir], 'assimp.log')
         )
 
-        texture_extensions = [] # @todo Fill this array.
+        texture_extensions = ['jpg', 'png', 'bmp', 'tga', 'tif']
         texture_index = 1000
         
         1000.times do
@@ -266,48 +247,76 @@ module UniversalImporter
             SESSION[:temp_dir], 'import_img' + texture_index.to_s
           )
 
-          # @todo Iterate over texture_extensions.
+          texture_extensions.each do |texture_extension|
 
-          if File.exist?(texture_image_base_path + '.jpg')
+            if File.exist?(texture_image_base_path + '.' + texture_extension)
 
-            obj_mtl_export.gsub!(
-              '*' + texture_index.to_s,
-              'import_img' + texture_index.to_s + '.jpg'
-            )
-
-          elsif File.exist?(texture_image_base_path + '.png')
-
-            obj_mtl_export.gsub!(
-              '*' + texture_index.to_s,
-              'import_img' + texture_index.to_s + '.png'
-            )
-
-          elsif File.exist?(texture_image_base_path + '.bmp')
-
-            obj_mtl_export.gsub!(
-              '*' + texture_index.to_s,
-              'import_img' + texture_index.to_s + '.bmp'
-            )
-
-          elsif File.exist?(texture_image_base_path + '.tga')
-
-            obj_mtl_export.gsub!(
-              '*' + texture_index.to_s,
-              'import_img' + texture_index.to_s + '.tga'
-            )
-
-          elsif File.exist?(texture_image_base_path + '.tif')
-
-            obj_mtl_export.gsub!(
-              '*' + texture_index.to_s,
-              'import_img' + texture_index.to_s + '.tif'
-            )
+              obj_mtl_export.gsub!(
+                '*' + texture_index.to_s,
+                'import_img' + texture_index.to_s + '.' + texture_extension
+              )
+  
+            end
 
           end
 
         end
 
         File.write(obj_mtl_export_file_path, obj_mtl_export)
+
+      end
+
+    end
+
+    # Fixes, in intermediate MTL file, path of each referenced texture.
+    def fix_referenced_tex_in_inter_mtl
+
+      intermediate_mtl_file_path = File.join(SESSION[:temp_dir], 'export.mtl')
+      intermediate_mtl = File.read(intermediate_mtl_file_path)
+
+      texture_refs = Assimp.get_texture_refs(
+        @import_file_path,
+        File.join(SESSION[:temp_dir], 'assimp.nfo')
+      )
+
+      if !texture_refs.empty?
+
+        source_parent_dir = File.expand_path(File.join(@source_dir, '..'))
+        # Dir.glob() only uses "/" to separate dirs, so we fix that (on Windows).
+        source_parent_dir.gsub!('\\', '/') if Sketchup.platform == :platform_win
+
+        texture_refs.each do |texture_path|
+
+          found_texture_path = nil
+
+          if File.exist?(File.join(@source_dir, texture_path))
+            found_texture_path = File.join(@source_dir, texture_path)
+          else
+            texture_glob_pattern = "#{source_parent_dir}/**/#{File.basename(texture_path)}"
+            # From source's parent dir, scans tree to find missing texture by filename...
+            texture_scan_result = Dir.glob(texture_glob_pattern)
+
+            if !texture_scan_result.empty?
+              found_texture_path = texture_scan_result.first
+            end
+          end
+
+          # @todo If texture not found and "Claim missing textures" option is On, ask user.
+
+          if !found_texture_path.nil?
+            link_name_to_found_texture = "_link_to_#{File.basename(texture_path)}"
+
+            FS.create_hard_link(
+              File.join(SESSION[:temp_dir], link_name_to_found_texture),
+              found_texture_path # target
+            )
+
+            intermediate_mtl.gsub!(texture_path, link_name_to_found_texture)
+          end
+          
+        end
+
+        File.write(intermediate_mtl_file_path, intermediate_mtl)
 
       end
 
