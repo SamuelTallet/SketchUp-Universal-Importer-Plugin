@@ -14,7 +14,6 @@
 
 require 'sketchup'
 require 'universal_importer/importer'
-require 'universal_importer/options'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -38,19 +37,19 @@ module UniversalImporter
       end
 
       ppr_menu_item = plugin_menu.add_item(TRANSLATE['Propose Polygon Reduction']) do
-        Options.propose_polygon_reduction = !Options.propose_polygon_reduction?
+        Importer.propose_polygon_reduction = !Importer.propose_polygon_reduction?
       end
 
       plugin_menu.set_validation_proc(ppr_menu_item) do
-        Options.propose_polygon_reduction? ? MF_CHECKED : MF_UNCHECKED
+        Importer.propose_polygon_reduction? ? MF_CHECKED : MF_UNCHECKED
       end
 
       cmt_menu_item = plugin_menu.add_item(TRANSLATE['Claim Missing Textures']) do
-        Options.claim_missing_textures = !Options.claim_missing_textures?
+        Importer.claim_missing_textures = !Importer.claim_missing_textures?
       end
 
       plugin_menu.set_validation_proc(cmt_menu_item) do
-        Options.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
+        Importer.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
       end
 
       plugin_menu.add_item('💌 ' + TRANSLATE['Donate to Plugin Author']) do

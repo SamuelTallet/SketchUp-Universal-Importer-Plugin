@@ -14,7 +14,6 @@
 
 require 'sketchup'
 require 'fileutils'
-require 'universal_importer/options'
 require 'universal_importer/gltf'
 require 'universal_importer/obj'
 require 'universal_importer/utils'
@@ -28,6 +27,50 @@ module UniversalImporter
 
   # 3D model importer.
   class Importer
+
+    # Initializes options with default values.
+    @@options = {
+      :propose_polygon_reduction? => true,
+      :claim_missing_textures? => false
+    }
+
+    # Sets "Propose polygon reduction" option.
+    # 
+    # @param [Boolean] yes_or_no
+    #
+    # @raise [ArgumentError]
+    def self.propose_polygon_reduction=(yes_or_no)
+      raise ArgumentError, 'Yes or No must be a Boolean'\
+        unless yes_or_no == true || yes_or_no == false
+
+      @@options[:propose_polygon_reduction?] = yes_or_no
+    end
+
+    # Gets "Propose polygon reduction" option.
+    #
+    # @return [Boolean]
+    def self.propose_polygon_reduction?
+      @@options[:propose_polygon_reduction?]
+    end
+
+    # Sets "Claim missing textures" option.
+    # 
+    # @param [Boolean] yes_or_no
+    #
+    # @raise [ArgumentError]
+    def self.claim_missing_textures=(yes_or_no)
+      raise ArgumentError, 'Yes or No must be a Boolean'\
+        unless yes_or_no == true || yes_or_no == false
+
+      @@options[:claim_missing_textures?] = yes_or_no
+    end
+
+    # Gets "Claim missing textures" option.
+    #
+    # @return [Boolean]
+    def self.claim_missing_textures?
+      @@options[:claim_missing_textures?]
+    end
 
     # Returns absolute path to Universal Importer program data directory.
     #
@@ -69,9 +112,9 @@ module UniversalImporter
         fix_embedded_tex_in_obj_export
         fix_referenced_tex_in_inter_mtl
 
-        ask_for_missing_tex_in_obj_export if Options.claim_missing_textures?
+        ask_for_missing_tex_in_obj_export if @@options[:claim_missing_textures?]
 
-        if Options.propose_polygon_reduction?
+        if @@options[:propose_polygon_reduction?]
           ask_for_polygon_reduction
           apply_polygon_reduction
         end
@@ -87,7 +130,7 @@ module UniversalImporter
         else
 
           export_to_dae_format
-          fix_unit_and_faces_in_dae_export
+          fix_faces_in_dae_export
           import_from_dae_format
 
         end
@@ -287,6 +330,7 @@ module UniversalImporter
 
         texture_refs.each do |texture_path|
 
+          #next unless original_intermediate_mtl.include?("map_Kd #{texture_path}") # FIXME
           found_texture_path = nil
 
           if File.exist?(File.join(@source_dir, texture_path))
@@ -301,10 +345,10 @@ module UniversalImporter
             end
           end
 
-          # @todo If texture not found and "Claim missing textures" option is On, ask user.
+          # @todo if texture not found and "Claim missing textures" option is On, ask user.
 
           if !found_texture_path.nil?
-            link_name_to_found_texture = "_link_to_#{File.basename(texture_path)}"
+            link_name_to_found_texture = "link_to_#{File.basename(texture_path)}"
 
             FS.create_hard_link(
               File.join(SESSION[:temp_dir], link_name_to_found_texture),
@@ -459,24 +503,18 @@ module UniversalImporter
       
     end
 
-    # Fix unit and faces in DAE export.
-    def fix_unit_and_faces_in_dae_export
+    # Fix double sided faces in DAE export.
+    def fix_faces_in_dae_export
 
       dae_export = File.read(@dae_export_file_path)
 
       dae_export.insert(0, "<!-- File modified by Universal Importer plugin for SketchUp. -->\n")
 
-      unit_fix = '<asset>' + "\n"
-      # It seems only first unit tag is accounted by SketchUp importer.
-      unit_fix += "\t\t" + '<unit name="inch" meter="0.0254" />'
+      faces_fix = '<extra><technique profile="GOOGLEEARTH">'
+      faces_fix += '<double_sided>1</double_sided>'
+      faces_fix += "</technique></extra>\n</profile_COMMON>"
 
-      dae_export.sub!('<asset>', unit_fix)
-
-      double_sided_face_fix = '<extra><technique profile="GOOGLEEARTH">'
-      double_sided_face_fix += '<double_sided>1</double_sided>'
-      double_sided_face_fix += "</technique></extra>\n</profile_COMMON>"
-
-      dae_export.gsub!('</profile_COMMON>', double_sided_face_fix)
+      dae_export.gsub!('</profile_COMMON>', faces_fix)
 
       File.write(@dae_export_file_path, dae_export)
 
