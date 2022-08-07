@@ -21,6 +21,7 @@ require 'universal_importer/fs'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
+require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -134,6 +135,8 @@ module UniversalImporter
           import_from_dae_format
 
         end
+
+        Donate.invitation_planned = true # FIXME: Invite from time to time.
         
       rescue StandardError => exception
 
@@ -451,6 +454,8 @@ module UniversalImporter
         File.join(SESSION[:temp_dir], 'poly_reduction.mlx'),
         File.join(SESSION[:temp_dir], 'meshlab.log')
       )
+
+      # FIXME: Replace "Tr 1." with "Tr 0." in MTL file.
 
     end
 

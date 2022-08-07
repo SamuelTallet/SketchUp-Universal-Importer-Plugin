@@ -14,6 +14,7 @@
 
 require 'sketchup'
 require 'universal_importer/importer'
+require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -52,8 +53,8 @@ module UniversalImporter
         Importer.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
       end
 
-      plugin_menu.add_item('💌 ' + TRANSLATE['Donate to Plugin Author']) do
-        UI.openURL('https://www.paypal.me/SamuelTallet')
+      plugin_menu.add_item(TRANSLATE['Donate to Plugin Author']) do
+        UI.openURL(Donate.url)
       end
 
       plugin_menu.add_separator

@@ -17,6 +17,7 @@ require 'universal_importer/app_observer'
 require 'universal_importer/model_observer'
 require 'universal_importer/menu'
 require 'universal_importer/toolbar'
+require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -33,6 +34,8 @@ module UniversalImporter
 
   Menu.add
   Toolbar.new.prepare.show
+
+  Donate.fetch_url
 
   # Load complete.
 
