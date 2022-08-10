@@ -62,7 +62,7 @@ module UniversalImporter
     # Invites user to donate.
     def self.invite_user
       answer = UI.messagebox(
-        TRANSLATE['Do you find Universal Importer plugin useful? Would you like to support its author with a modest donation?'] + ' ;)',
+        TRANSLATE['Do you find Universal Importer plugin useful? You can support its author with a donation'] + ' ;)',
         MB_YESNO
       )
       UI.openURL(@@url) if answer == IDYES
