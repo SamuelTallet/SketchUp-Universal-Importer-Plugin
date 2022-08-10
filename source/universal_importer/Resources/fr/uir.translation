@@ -21,6 +21,12 @@
 "Scale Imported Model"="Redimensionner le modèle importé";
 
 //
+// File: donate.rb
+//
+
+"Do you find Universal Importer plugin useful? Would you like to support its author with a modest donation?"="Trouvez-vous l'extension Importateur Universel utile ? Souhaitez-vous soutenir son auteur par un modeste don ?";
+
+//
 // File: importer.rb
 //
 
