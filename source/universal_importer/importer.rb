@@ -334,12 +334,16 @@ module UniversalImporter
         texture_refs.each do |texture_path|
 
           #next unless original_intermediate_mtl.include?("map_Kd #{texture_path}") # FIXME
+
           found_texture_path = nil
 
-          if File.exist?(File.join(@source_dir, texture_path))
-            found_texture_path = File.join(@source_dir, texture_path)
+          texture_path_in_source_dir = File.join(@source_dir, FS.normalize_separator(texture_path))
+          texture_basename = File.basename(FS.normalize_separator(texture_path))
+
+          if File.exist?(texture_path_in_source_dir)
+            found_texture_path = texture_path_in_source_dir
           else
-            texture_glob_pattern = "#{source_parent_dir}/**/#{File.basename(texture_path)}"
+            texture_glob_pattern = "#{source_parent_dir}/**/#{texture_basename}"
             # From source's parent dir, scans tree to find missing texture by filename...
             texture_scan_result = Dir.glob(texture_glob_pattern)
 
@@ -351,7 +355,7 @@ module UniversalImporter
           # @todo if texture not found and "Claim missing textures" option is On, ask user.
 
           if !found_texture_path.nil?
-            link_name_to_found_texture = "link_to_#{File.basename(texture_path)}"
+            link_name_to_found_texture = "link_to_#{texture_basename}"
 
             FS.create_hard_link(
               File.join(SESSION[:temp_dir], link_name_to_found_texture),

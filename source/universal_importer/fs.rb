@@ -26,29 +26,52 @@ module UniversalImporter
     # @see https://discussions.apple.com/thread/251599508
     #
     # @param [String] link
-    # @param [String] target
+    # @param [String] original_file
     # @raise [ArgumentError]
     #
     # @raise RuntimeError
     # @return [Boolean, nil] `true` on success, `false` or `nil` on fail.
-    def self.create_hard_link(link, target)
+    def self.create_hard_link(link, original_file)
       
       raise ArgumentError, 'Link must be a String' unless link.is_a?(String)
-      raise ArgumentError, 'Target must be a String' unless target.is_a?(String)
+      raise ArgumentError, 'Original file must be a String' unless original_file.is_a?(String)
 
-      # Wraps link and target with double quotes. Maybe they contain spaces.
-      link = '"' + link + '"'; target = '"' + target + '"'
+      # Wraps paths to link and original file with double quotes, since they can contain spaces.
+      link = '"' + link + '"'; original_file = '"' + original_file + '"'
 
-      if Sketchup.platform == :platform_win
+      case Sketchup.platform
+      when :platform_win
         # mklink.exe is only available through cmd.exe
-        command = "cmd /C mklink /H #{link} #{target}"
-      elsif Sketchup.platform == :platform_osx
-        command = "ln #{target} #{link}"
+        command = "cmd /C mklink /H #{link} #{original_file}"
+      when :platform_osx
+        command = "ln #{original_file} #{link}"
       else
-        raise RuntimeError, "Unsupported platform: #{Sketchup.platform.to_s}"
+        raise "Unsupported platform: #{Sketchup.platform.to_s}"
       end
 
       system(command)
+
+    end
+
+    # Normalizes directory separator in a path depending on current platform.
+    #
+    # @param [String] path
+    # @raise [ArgumentError]
+    #
+    # @raise RuntimeError
+    # @return [String] normalized path.
+    def self.normalize_separator(path)
+
+      raise ArgumentError, 'Path must be a String' unless path.is_a?(String)
+
+      case Sketchup.platform
+      when :platform_win
+        path.gsub('/', '\\')
+      when :platform_osx
+        path.gsub('\\', '/')
+      else
+        raise "Unsupported platform: #{Sketchup.platform.to_s}"
+      end
 
     end
 
