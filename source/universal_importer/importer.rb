@@ -333,7 +333,8 @@ module UniversalImporter
 
         texture_refs.each do |texture_path|
 
-          #next unless original_intermediate_mtl.include?("map_Kd #{texture_path}") # FIXME
+          # Skips normal maps, etc since SketchUp supports only a texture assimilable to diffuse map.
+          next unless intermediate_mtl.include?("map_Kd #{texture_path}")
 
           found_texture_path = nil
 
@@ -362,7 +363,7 @@ module UniversalImporter
               found_texture_path # target
             )
 
-            intermediate_mtl.gsub!(texture_path, link_name_to_found_texture)
+            intermediate_mtl.gsub!("map_Kd #{texture_path}", "map_Kd #{link_name_to_found_texture}")
           end
           
         end
