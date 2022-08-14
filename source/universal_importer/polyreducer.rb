@@ -75,25 +75,13 @@ module UniversalImporter
         reset_prog_data_tmp_dir
 
         convert_from_skp_to_dae
-
         convert_from_dae_to_obj
 
         apply_polygon_reduction
 
-        if Sketchup.platform == :platform_osx
+        convert_from_obj_to_dae
+        convert_from_dae_to_skp
 
-          convert_from_obj_to_3ds
-
-          convert_from_3ds_to_skp
-
-        else
-
-          convert_from_obj_to_dae
-
-          convert_from_dae_to_skp
-
-        end
-        
       rescue StandardError => exception
         
         UI.messagebox(
@@ -208,7 +196,7 @@ module UniversalImporter
 
     end
 
-    # Converts current SketchUp model to 3DS format.
+    # Converts current SketchUp model to 3DS format. @deprecated
     def convert_from_obj_to_3ds
 
       @tds_import_file_path = File.join(SESSION[:temp_dir], 'import.3ds')
@@ -221,7 +209,7 @@ module UniversalImporter
 
     end
 
-    # Converts current SketchUp model to SKP format.
+    # Converts current SketchUp model to SKP format. @deprecated
     #
     # @return [true, false]
     def convert_from_3ds_to_skp

@@ -123,18 +123,9 @@ module UniversalImporter
         # @todo Remove this @deprecated hack?
         #ask_for_model_height
 
-        if Sketchup.platform == :platform_osx
-
-          export_to_3ds_format
-          import_from_3ds_format
-
-        else
-
-          export_to_dae_format
-          fix_faces_in_dae_export
-          import_from_dae_format
-
-        end
+        export_to_dae_format
+        fix_faces_in_dae_export
+        import_from_dae_format
 
         increment_imports_counter
 
@@ -488,7 +479,7 @@ module UniversalImporter
 
     end
 
-    # Exports 3D model to 3DS format.
+    # Exports 3D model to 3DS format. @deprecated
     def export_to_3ds_format
 
       @tds_export_file_path = File.join(SESSION[:temp_dir], 'export.3ds')
@@ -501,7 +492,7 @@ module UniversalImporter
 
     end
 
-    # Imports 3D model from 3DS format.
+    # Imports 3D model from 3DS format. @deprecated
     def import_from_3ds_format
 
       Sketchup.active_model.import(@tds_export_file_path)
