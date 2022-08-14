@@ -136,7 +136,12 @@ module UniversalImporter
 
         end
 
-        Donate.invitation_planned = true # FIXME: Invite from time to time.
+        increment_imports_counter
+
+        # Invites user to donate after 5, 25, 50 and every 100 completed imports.
+        if [5, 25, 50].include?(@imports_counter) || (@imports_counter % 100) == 0
+          Donate.invitation_planned = true
+        end
         
       rescue StandardError => exception
 
@@ -537,6 +542,20 @@ module UniversalImporter
     def import_from_dae_format
 
       Sketchup.active_model.import(@dae_export_file_path)
+
+    end
+
+    # Increments "imports.count" file.
+    # Used to know if it's time to plan a donate invitation.
+    def increment_imports_counter
+
+      imports_count_file = File.join(__dir__, 'imports.count')
+
+      File.write(imports_count_file, '0') unless File.exist?(imports_count_file)
+      @imports_counter = File.read(imports_count_file).to_i
+
+      @imports_counter += 1
+      File.write(imports_count_file, @imports_counter.to_s)
 
     end
 
