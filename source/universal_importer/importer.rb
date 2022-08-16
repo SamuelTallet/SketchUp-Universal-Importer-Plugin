@@ -352,14 +352,13 @@ module UniversalImporter
           # @todo if texture not found and "Claim missing textures" option is On, ask user.
 
           if !found_texture_path.nil?
-            link_name_to_found_texture = "link_to_#{texture_basename}"
+            texture_copy_or_link_path = File.join(SESSION[:temp_dir], "uir-#{texture_basename}")
 
-            FS.create_hard_link(
-              File.join(SESSION[:temp_dir], link_name_to_found_texture),
-              found_texture_path # target
-            )
+            unless FS.create_hard_link(texture_copy_or_link_path, found_texture_path)
+              Utils.mkdir_and_copy_file(found_texture_path, texture_copy_or_link_path)
+            end
 
-            intermediate_mtl.gsub!("map_Kd #{texture_path}", "map_Kd #{link_name_to_found_texture}")
+            intermediate_mtl.gsub!("map_Kd #{texture_path}", "map_Kd uir-#{texture_basename}")
           end
           
         end
