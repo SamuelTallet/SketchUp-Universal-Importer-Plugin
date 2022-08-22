@@ -2,8 +2,7 @@
 
 Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on the fly.
 
-Supported formats
------------------
+## Supported formats
 
 - 3D
 - 3DS
@@ -64,10 +63,7 @@ Supported formats
 - XGL
 - ZGL
 
-Documentation
--------------
-
-### How to install this plugin?
+## Installation
 
 1. Be sure to have SketchUp 2017 or newer.
 2. Download latest Universal Importer plugin from the [SketchUcation PluginStore](https://sketchucation.com/plugin/2275-universal_importer).
@@ -75,16 +71,16 @@ Documentation
 
 Now, you should have in SketchUp an "Import with Universal Importer..." entry in "File" menu and an "Universal Importer" toolbar.
 
-### I'm getting an error when I try to import a model. What can I do?
+## Troubleshooting
 
-First, (re)install [Microsoft Visual C++ library](https://aka.ms/vs/17/release/vc_redist.x64.exe). If problem persists, report bug [here](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) or [there](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951).
+### I get a not precise error when I import a model.
 
-Thanks
-------
+(Re)install [Microsoft Visual C++ library](https://aka.ms/vs/17/release/vc_redist.x64.exe) then restart Windows.
+
+## Thanks
 
 This plugin relies on [Assimp library](https://github.com/assimp/assimp) and [MeshLab software](https://github.com/cnr-isti-vclab/meshlab). Thanks to Assimp's and MeshLab's contributors.
 
-Copyright
----------
+## Copyright
 
 © 2022 Samuel Tallet
