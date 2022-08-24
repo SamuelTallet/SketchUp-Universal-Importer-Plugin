@@ -23,7 +23,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - ENFF
 - FBX
 - glTF 1.0 + GLB
-- glTF 2.0
+- glTF 2.0 + GLB
 - HMB
 - IFC-STEP
 - IRR / IRRMESH
@@ -69,7 +69,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 2. Download latest Universal Importer plugin from the [SketchUcation PluginStore](https://sketchucation.com/plugin/2275-universal_importer).
 3. Install plugin following this [guide](https://www.youtube.com/watch?v=tyM5f81eRno).
 
-Now, you should have in SketchUp an "Universal Importer..." submenu in "Extensions" menu and an "Universal Importer" toolbar.
+Now, you should have in SketchUp an "Universal Importer" submenu in "Extensions" menu and an "Universal Importer" toolbar.
 
 ## Troubleshooting
 
@@ -77,7 +77,7 @@ Now, you should have in SketchUp an "Universal Importer..." submenu in "Extensio
 
 (Re)install [Microsoft Visual C++ library](https://aka.ms/vs/17/release/vc_redist.x64.exe) then restart Windows.
 
-### Model was imported but textures are missing...
+### Model was imported but textures are missing.
 
 Enable "Claim Missing Textures" option in "Extensions > Universal Importer" menu then import model again.
 
