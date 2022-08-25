@@ -73,13 +73,17 @@ Now, you should have in SketchUp an "Universal Importer" submenu in "Extensions"
 
 ## Troubleshooting
 
-### I get a error when I import a model on Windows.
+### I get an error when I import a model on Windows.
 
 (Re)install [Microsoft Visual C++ library](https://aka.ms/vs/17/release/vc_redist.x64.exe) then restart Windows.
 
 ### Model was imported but textures are missing.
 
 Enable "Claim Missing Textures" option in "Extensions > Universal Importer" menu then import model again.
+
+### My problem isn't resolved or isn't listed above.
+
+Report a bug on official [Universal Importer forum thread](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951) at SketchUcation or here at GitHub on [Issues](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) page.
 
 ## Thanks
 
