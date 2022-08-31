@@ -53,6 +53,10 @@ module UniversalImporter
         Importer.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
       end
 
+      plugin_menu.add_item(TRANSLATE['Get Help or Report a Bug']) do
+        UI.openURL('https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin#troubleshooting')
+      end
+
       plugin_menu.add_item(TRANSLATE['Donate to Plugin Author']) do
         UI.openURL(Donate.url)
       end
