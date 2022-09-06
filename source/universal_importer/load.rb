@@ -13,6 +13,8 @@
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
 require 'sketchup'
+require 'universal_importer/assimp'
+require 'universal_importer/meshlab'
 require 'universal_importer/app_observer'
 require 'universal_importer/model_observer'
 require 'universal_importer/menu'
@@ -23,10 +25,8 @@ require 'universal_importer/donate'
 module UniversalImporter
 
   if Sketchup.platform == :platform_osx
-
-    require 'universal_importer/macos'
-    MacOS.fix_file_permissions
-
+    Assimp.make_executable
+    MeshLab.make_executable
   end
 
   Sketchup.add_observer(AppObserver.new)

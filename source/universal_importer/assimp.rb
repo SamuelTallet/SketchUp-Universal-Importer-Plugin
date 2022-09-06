@@ -48,6 +48,13 @@ module UniversalImporter
 
     end
 
+    # Ensures Assimp is executable. XXX Relevant only to macOS.
+    def self.make_executable
+
+      FileUtils.chmod('+x', exe)
+
+    end
+
     # Converts a 3D model.
     #
     # @param [String] in_path
@@ -56,8 +63,6 @@ module UniversalImporter
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    #
-    # @return [nil]
     def self.convert_model(in_path, out_path, log_path)
 
       raise ArgumentError, 'In Path parameter must be a String.'\
@@ -85,8 +90,6 @@ module UniversalImporter
 
       end
 
-      nil
-
     end
 
     # If they exist: extracts embedded textures from a 3D model.
@@ -96,8 +99,6 @@ module UniversalImporter
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    #
-    # @return [nil]
     def self.extract_textures(in_path, log_path)
 
       raise ArgumentError, 'In Path parameter must be a String.'\
@@ -121,8 +122,6 @@ module UniversalImporter
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
-
-      nil
 
     end
 

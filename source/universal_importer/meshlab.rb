@@ -73,6 +73,13 @@ module UniversalImporter
 
     end
 
+    # Ensures MeshLab is executable. XXX Relevant only to macOS.
+    def self.make_executable
+
+      FileUtils.chmod('+x', exe)
+
+    end
+
     # Returns a polygon reduction script to apply with MeshLab.
     #
     # @param [Boolean] with_texture
@@ -132,8 +139,6 @@ module UniversalImporter
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    #
-    # @return [nil]
     def self.apply_script(in_path, out_path, script_path, log_path)
 
       raise ArgumentError, 'In Path parameter must be a String.'\
@@ -179,8 +184,6 @@ module UniversalImporter
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
 
       end
-
-      nil
 
     end
 
