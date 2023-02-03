@@ -13,7 +13,7 @@
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
 require 'sketchup'
-require 'universal_importer/importer'
+require 'universal_importer/import'
 require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
@@ -27,30 +27,30 @@ module UniversalImporter
 
       file_menu = UI.menu('File')
 
-      file_menu.add_item(TRANSLATE['Import with'] + ' ' + NAME + '...') do
-        Importer.new
+      file_menu.add_item(TRANSLATE['Import with'] + ' ' + PLUGIN_NAME + '...') do
+        Import.last = Import.new
       end
 
-      plugin_menu = UI.menu('Plugins').add_submenu(NAME)
+      plugin_menu = UI.menu('Plugins').add_submenu(PLUGIN_NAME)
 
       plugin_menu.add_item(TRANSLATE['Import a 3D Model...']) do
-        Importer.new
+        Import.last = Import.new
       end
 
       ppr_menu_item = plugin_menu.add_item(TRANSLATE['Propose Polygon Reduction']) do
-        Importer.propose_polygon_reduction = !Importer.propose_polygon_reduction?
+        Import.propose_polygon_reduction = !Import.propose_polygon_reduction?
       end
 
       plugin_menu.set_validation_proc(ppr_menu_item) do
-        Importer.propose_polygon_reduction? ? MF_CHECKED : MF_UNCHECKED
+        Import.propose_polygon_reduction? ? MF_CHECKED : MF_UNCHECKED
       end
 
       cmt_menu_item = plugin_menu.add_item(TRANSLATE['Claim Missing Textures']) do
-        Importer.claim_missing_textures = !Importer.claim_missing_textures?
+        Import.claim_missing_textures = !Import.claim_missing_textures?
       end
 
       plugin_menu.set_validation_proc(cmt_menu_item) do
-        Importer.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
+        Import.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
       end
 
       plugin_menu.add_item(TRANSLATE['Get Help or Report a Bug']) do

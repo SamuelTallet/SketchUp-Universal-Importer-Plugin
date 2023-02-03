@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -23,31 +23,6 @@ module UniversalImporter
   # @see https://github.com/cnr-isti-vclab/meshlab
   module MeshLab
 
-    # Returns absolute path to MeshLab application directory.
-    #
-    # @raise [StandardError]
-    #
-    # @return [String]
-    def self.dir
-
-      if Sketchup.platform == :platform_osx
-
-        return File.join(__dir__, '3rd-Party Apps', 'MeshLab', 'Mac')
-
-      elsif Sketchup.platform == :platform_win
-
-        return File.join(__dir__, '3rd-Party Apps', 'MeshLab', 'Win')
-
-      else
-
-        raise StandardError.new(
-          'Unsupported platform: ' + Sketchup.platform.to_s
-        )
-
-      end
-
-    end
-
     # Returns absolute path to MeshLab command-line executable.
     #
     # @raise [StandardError]
@@ -57,18 +32,14 @@ module UniversalImporter
 
       if Sketchup.platform == :platform_osx
 
-        return File.join(dir, 'MacOS', 'meshlabserver')
+        return File.join(__dir__, 'Applications', 'MeshLab', 'Mac', 'MacOS', 'meshlabserver')
 
       elsif Sketchup.platform == :platform_win
 
-        return File.join(dir, 'meshlabserver.exe')
+        return File.join(__dir__, 'Applications', 'MeshLab', 'Win', 'meshlabserver.exe')
 
       else
-
-        raise StandardError.new(
-          'Unsupported platform: ' + Sketchup.platform.to_s
-        )
-
+        raise StandardError.new('Unsupported platform: ' + Sketchup.platform.to_s)
       end
 
     end
@@ -89,24 +60,17 @@ module UniversalImporter
     # @return [String]
     def self.poly_reduction_script(with_texture, target_face_num)
 
-      raise ArgumentError, 'With Texture parameter must be true or false.'\
-        unless [true, false].include?(with_texture)
-
-      raise ArgumentError, 'Target Face Num. parameter must be an Integer.'\
-        unless target_face_num.is_a?(Integer)
+      raise ArgumentError, 'With Texture must be a Boolean' unless [true, false].include?(with_texture)
+      raise ArgumentError, 'Target Face Num. must be an Integer' unless target_face_num.is_a?(Integer)
 
       mlx = '<!DOCTYPE FilterScript>' + "\n"
       mlx += '<FilterScript>' + "\n"
       mlx += '<filter name="Simplification: Quadric Edge Collapse Decimation'
 
       if with_texture
-
         mlx += ' (with texture)">' + "\n"
-
       else
-
         mlx += '">' + "\n"
-
       end
 
       mlx += '<Param type="RichInt" value="'
@@ -132,57 +96,42 @@ module UniversalImporter
 
     # Applies a MeshLab script.
     #
-    # @param [String] in_path
-    # @param [String] out_path
-    # @param [String] script_path
-    # @param [String] log_path
+    # @param [String] working_dir
+    # @param [String] in_filename
+    # @param [String] out_filename
+    # @param [String] mlx_filename
+    # @param [String] log_filename
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    def self.apply_script(in_path, out_path, script_path, log_path)
+    def self.apply_script(working_dir, in_filename, out_filename, mlx_filename, log_filename)
 
-      raise ArgumentError, 'In Path parameter must be a String.'\
-        unless in_path.is_a?(String)
+      raise ArgumentError, 'Working Dir must be a String' unless working_dir.is_a?(String)
+      raise ArgumentError, 'In Filename must be a String' unless in_filename.is_a?(String)
+      raise ArgumentError, 'Out Filename must be a String' unless out_filename.is_a?(String)
+      raise ArgumentError, 'MLX Filename must be a String' unless mlx_filename.is_a?(String)
+      raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
-      raise ArgumentError, 'Out Path parameter must be a String.'\
-        unless out_path.is_a?(String)
-
-      raise ArgumentError, 'Script Path parameter must be a String.'\
-        unless script_path.is_a?(String)
-
-      raise ArgumentError, 'Log Path parameter must be a String.'\
-        unless log_path.is_a?(String)
-
-      if Sketchup.platform == :platform_osx
-
-        # XXX First, we move to MeshLab application directory to load plugins.
-        command =\
-          'cd "' + dir + '" && ' + 
-          '"' + exe + '" -i "' + 
-          in_path + '" -o "' + out_path + '" -m wt' +
-          ' -s "' + script_path + '"'
-        
-      else
-
-        command =\
-          '"' + exe + '" -i "' + 
-          in_path + '" -o "' + out_path + '" -m wt' +
-          ' -s "' + script_path + '"'
-        
-      end
+      # @todo Explain here why we go to working dir.
+      command = 'cd "' + working_dir + '" && ' + 
+        '"' + exe + '" -i "' + in_filename +
+        '" -o "' + out_filename + '" -m wt' +
+        ' -s "' + mlx_filename + '"'
 
       status = system(command)
 
       if status != true
+        system(command + ' > "' + log_filename + '"')
 
-        system(command + ' > "' + log_path + '"')
+        log_path = File.join(working_dir, log_filename)
 
-        result = 'No log available.'
-
-        result = File.read(log_path) if File.exist?(log_path)
+        if File.exist?(log_path)
+          result = File.read(log_path) 
+        else
+          result = 'No log available.'
+        end
 
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
-
       end
 
     end

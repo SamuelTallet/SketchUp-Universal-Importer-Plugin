@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -34,9 +34,9 @@ module UniversalImporter
     def self.create_hard_link(link, original_file)
       
       raise ArgumentError, 'Link must be a String' unless link.is_a?(String)
-      raise ArgumentError, 'Original file must be a String' unless original_file.is_a?(String)
+      raise ArgumentError, 'Original File must be a String' unless original_file.is_a?(String)
 
-      # Wraps paths to link and original file with double quotes, since they can contain spaces.
+      # Escapes paths with double quotes, since they can contain spaces.
       link = '"' + link + '"'; original_file = '"' + original_file + '"'
 
       case Sketchup.platform

@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -25,137 +25,156 @@ module UniversalImporter
 
     # Returns absolute path to Assimp executable.
     #
+    # @param [Boolean] shell_escape Escape executable path with double quotes?
     # @raise [StandardError]
     #
     # @return [String]
-    def self.exe
+    def self.exe(shell_escape = true)
+
+      raise ArgumentError, 'Shell Escape must be a Boolean'\
+        unless shell_escape == true || shell_escape == false
 
       if Sketchup.platform == :platform_osx
 
-        return File.join(__dir__, '3rd-Party Apps', 'Assimp', 'Mac', 'assimp')
+        exe_path = File.join(__dir__, 'Applications', 'Assimp', 'Mac', 'assimp')
 
       elsif Sketchup.platform == :platform_win
 
-        return File.join(__dir__, '3rd-Party Apps', 'Assimp', 'Win', 'assimp.exe')
+        exe_path = File.join(__dir__, 'Applications', 'Assimp', 'Win', 'assimp.exe')
 
       else
-
         raise StandardError.new(
           'Unsupported platform: ' + Sketchup.platform.to_s
         )
-
       end
+
+      if shell_escape
+        exe_path = '"' + exe_path + '"'
+      end
+      
+      exe_path
 
     end
 
     # Ensures Assimp is executable. XXX Relevant only to macOS.
     def self.make_executable
 
-      FileUtils.chmod('+x', exe)
+      FileUtils.chmod('+x', exe(shell_escape = false))
 
     end
 
     # Converts a 3D model.
     #
-    # @param [String] in_path
-    # @param [String] out_path
-    # @param [String] log_path
+    # @param [String] working_dir
+    # @param [String] in_filename
+    # @param [String] out_filename
+    # @param [String] log_filename
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    def self.convert_model(in_path, out_path, log_path)
+    def self.convert_model(working_dir, in_filename, out_filename, log_filename)
 
-      raise ArgumentError, 'In Path parameter must be a String.'\
-        unless in_path.is_a?(String)
+      raise ArgumentError, 'Working Dir must be a String' unless working_dir.is_a?(String)
+      raise ArgumentError, 'In Filename must be a String' unless in_filename.is_a?(String)
+      raise ArgumentError, 'Out Filename must be a String' unless out_filename.is_a?(String)
+      raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
-      raise ArgumentError, 'Out Path parameter must be a String.'\
-        unless out_path.is_a?(String)
+      log_path = File.join(working_dir, log_filename)
 
-      raise ArgumentError, 'Log Path parameter must be a String.'\
-        unless log_path.is_a?(String)
+      # Escapes paths with double quotes, since they can contain spaces.
+      working_dir = '"' + working_dir + '"'; in_filename = '"' + in_filename + '"';
+      out_filename = '"' + out_filename + '"'; log_filename = '"' + log_filename + '"';
 
-      command = '"' + exe + '" export "' + in_path + '" "' + out_path + '" -tri'
-      
+      # @todo Explain here why we go to working dir.
+      command = "cd #{working_dir} && #{exe} export #{in_filename} #{out_filename} -tri"
       status = system(command)
 
       if status != true
+        system("#{command} > #{log_filename}")
 
-        system(command + ' > "' + log_path + '"')
-
-        result = 'No log available.'
-
-        result = File.read(log_path) if File.exist?(log_path)
+        if File.exist?(log_path)
+          result = File.read(log_path) 
+        else
+          result = 'No log available.'
+        end
 
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
-
       end
 
     end
 
     # If they exist: extracts embedded textures from a 3D model.
     #
-    # @param [String] in_path
-    # @param [String] log_path
+    # @param [String] working_dir
+    # @param [String] in_filename
+    # @param [String] log_filename
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
-    def self.extract_textures(in_path, log_path)
+    def self.extract_textures(working_dir, in_filename, log_filename)
 
-      raise ArgumentError, 'In Path parameter must be a String.'\
-        unless in_path.is_a?(String)
+      raise ArgumentError, 'Working Dir must be a String' unless working_dir.is_a?(String)
+      raise ArgumentError, 'In Filename must be a String' unless in_filename.is_a?(String)
+      raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
-      raise ArgumentError, 'Log Path parameter must be a String.'\
-        unless log_path.is_a?(String)
+      log_path = File.join(working_dir, log_filename)
 
-      command = '"' + exe + '" extract "' + in_path + '"'
-      
+      # Escapes paths with double quotes, since they can contain spaces.
+      working_dir = '"' + working_dir + '"'; in_filename = '"' + in_filename + '"';
+      log_filename = '"' + log_filename + '"'
+
+      command = "cd #{working_dir} && #{exe} extract #{in_filename}"
       status = system(command)
 
       if status != true
+        system("#{command} > #{log_filename}")
 
-        system(command + ' > "' + log_path + '"')
-
-        result = 'No log available.'
-
-        result = File.read(log_path) if File.exist?(log_path)
+        if File.exist?(log_path)
+          result = File.read(log_path) 
+        else
+          result = 'No log available.'
+        end
 
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
-
       end
 
     end
 
-    # If they exist: gets texture references of a 3D model.
+    # If they exist: gets external texture references of a 3D model.
     #
-    # @param [String] in_path
-    # @param [String] log_path
+    # @param [String] working_dir
+    # @param [String] in_filename
+    # @param [String] log_filename
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
     #
     # @return [Array<String>]
-    def self.get_texture_refs(in_path, log_path)
+    def self.get_texture_refs(working_dir, in_filename, log_filename)
 
-      raise ArgumentError, 'In Path parameter must be a String.'\
-        unless in_path.is_a?(String)
+      raise ArgumentError, 'Working Dir must be a String' unless working_dir.is_a?(String)
+      raise ArgumentError, 'In Filename must be a String' unless in_filename.is_a?(String)
+      raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
-      raise ArgumentError, 'Log Path parameter must be a String.'\
-        unless log_path.is_a?(String)
+      log_path = File.join(working_dir, log_filename)
+
+      # Escapes paths with double quotes, since they can contain spaces.
+      working_dir = '"' + working_dir + '"'; in_filename = '"' + in_filename + '"';
+      log_filename = '"' + log_filename + '"'
 
       texture_refs = []
 
-      command = '"' + exe + '" info "' + in_path + '"' + ' > "' + log_path + '"'
-      
+      command = "cd #{working_dir} && #{exe} info #{in_filename} > #{log_filename}"
       status = system(command)
 
       if status != true
-
-        result = 'No log available.'
-
-        result = File.read(log_path) if File.exist?(log_path)
+        if File.exist?(log_path)
+          result = File.read(log_path) 
+        else
+          result = 'No log available.'
+        end
 
         raise StandardError.new('Command failed: ' + command + "\n\n" + result)
-
       end
 
       info = File.read(log_path)
@@ -167,19 +186,16 @@ module UniversalImporter
           tex_nfo = info.split('Texture Refs:')[1].split('Named Animations:')[0]
 
         else
-
           tex_nfo = info.split('Texture Refs:')[1].split('Node hierarchy:')[0]
-
         end
 
         tex_nfo.lines.each do |line|
 
           cleaned_line = line.strip.sub("'", '').sub(/.*\K'/, '')
 
+          # Skips references to embedded textures. Examples: *0, *1
           if !cleaned_line.empty? && !cleaned_line.start_with?('*')
-
             texture_refs.push(cleaned_line)
-
           end
 
         end
@@ -192,27 +208,30 @@ module UniversalImporter
 
     # Gets face count of a 3D model.
     #
-    # @param [String] log_path
+    # @param [String] working_dir
+    # @param [String] log_filename
     # @raise [ArgumentError]
     #
     # @raise [StandardError]
     #
     # @return [Integer]
-    def self.get_face_count(log_path)
+    def self.get_face_count(working_dir, log_filename)
 
-      raise ArgumentError, 'Log Path parameter must be a String.'\
-        unless log_path.is_a?(String)
+      raise ArgumentError, 'Working Dir must be a String' unless working_dir.is_a?(String)
+      raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
+
+      log_path = File.join(working_dir, log_filename)
+
+      raise "Can't get model face count because following file doesn't exist: #{log_path}"\
+        unless File.exist?(log_path)
 
       face_count = 0
-
       info = File.read(log_path)
 
       info.lines.each do |line|
 
         if line.start_with?('Faces:')
-
           return line.gsub(/[^0-9]/, '').to_i
-
         end
 
       end

@@ -3,7 +3,7 @@
 // Universal Importer Plugin Japanese Translation
 //
 // Authors: PC-Trace, DeepL
-// Last Update: November 2, 2022
+// Last Update: February 3, 2023
 /////////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -12,19 +12,14 @@
 "Import 3D models in SketchUp. 50+ formats are supported."="SketchUp に 3D モデルをインポートします。 50以上のフォーマットがサポートされています.";
 "Reduce polygon count on the fly."="ポリゴン数をその場で削減.";
 
-// File: components.rb
-
-"Scale Imported Model"="インポートされたモデルのスケール";
-
 // File: donate.rb
 
 "Do you find Universal Importer plugin useful? You can support its author with a donation"="Universal Importer プラグインは役に立ちましたか? 寄付で作者をサポートできます";
 
-// File: importer.rb
+// File: import.rb
 
 "Select a 3D Model"="3D モデルを選択";
 "3D Models"="3Dモデル";
-"Model height (mm)"="モデルの高さ (mm)";
 "Select a Texture for Material:"="素材のテクスチャを選択:";
 "Images"="画像";
 "Model has"="モデルは";
@@ -43,15 +38,12 @@
 "Donate to Plugin Author"="プラグイン作成者に寄付する";
 "Plugins of Same Author"="同じ著者のプラグイン";
 
-// File: model_observer.rb
-
-"Face count before reduction:"="縮小前の面数:";
-"Face count after reduction:"="縮小後の面数:";
-
-// File: polyreducer.rb
+// File: polyreduction.rb
 
 "Selection must be empty!"="選択は空でなければなりません!";
 "Current face count:"="現在の面数:";
+"Face count before reduction:"="縮小前の面数:";
+"Face count after reduction:"="縮小後の面数:";
 
 // File: toolbar.rb
 

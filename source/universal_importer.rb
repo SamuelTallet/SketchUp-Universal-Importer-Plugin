@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -21,20 +21,17 @@ raise 'Universal Importer plugin requires at least SketchUp 2017.'\
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.2.0-beta'
+  VERSION = '1.2.0-rc'
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.translation')
   # See: "universal_importer/Resources/#{Sketchup.get_locale}/uir.translation"
 
-  NAME = TRANSLATE['Universal Importer']
-
-  # @deprecated plugin session storage.
-  SESSION = {}
+  PLUGIN_NAME = TRANSLATE['Universal Importer']
 
   # Registers extension.
 
-  extension = SketchupExtension.new(NAME, 'universal_importer/load.rb')
+  extension = SketchupExtension.new(PLUGIN_NAME, 'universal_importer/load.rb')
 
   extension.version     = VERSION
   extension.creator     = 'Samuel Tallet'

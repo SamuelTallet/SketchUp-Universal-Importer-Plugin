@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -13,53 +13,29 @@
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
 require 'sketchup'
-require 'universal_importer/components'
+require 'universal_importer/import'
+require 'universal_importer/polyreduction'
+require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # Observes SketchUp model events and reacts.
+  # Observes SketchUp model events and reacts...
   class ModelObserver < Sketchup::ModelObserver
 
     # When a component is “placed” into the model:
     def onPlaceComponent(component)
 
-      # Scales component according to user input.
-      if !SESSION[:model_height_in_mm].nil?
-
-        Components.scale_down(component, SESSION[:model_height_in_mm])
-
-        SESSION[:model_height_in_mm] = nil
-
-        Sketchup.active_model.active_view.zoom_extents
-
+      if !Import.last.nil? && Import.last.completed
+        Import.last.delete_temp_files
+        component.definition.name = Import.last.source_filename
+        Import.last = nil
       end
 
-      # Names component with source filename.
-      if !SESSION[:source_filename].nil?
-
-        component.definition.name = SESSION[:source_filename]
-
-        SESSION[:source_filename] = nil
-
-      end
-
-      # Displays face count before/after reduction.
-      if !SESSION[:faces_num_before_reduc].nil?
-
-        UI.messagebox(
-
-          TRANSLATE['Face count before reduction:'] + ' ' +
-          SESSION[:faces_num_before_reduc].to_s + "\n" +
-
-          TRANSLATE['Face count after reduction:'] + ' ' +
-          (Sketchup.active_model.number_faces\
-            - SESSION[:faces_num_before_reduc]).to_s
-          
-        )
-
-        SESSION[:faces_num_before_reduc] = nil
-
+      if !PolyReduction.last.nil? && PolyReduction.last.completed
+        PolyReduction.last.delete_temp_dir
+        PolyReduction.last.show_face_count_summary
+        PolyReduction.last = nil
       end
 
       if Donate.invitation_planned?
