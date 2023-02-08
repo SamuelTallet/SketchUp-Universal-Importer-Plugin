@@ -35,7 +35,7 @@ module UniversalImporter
 
   extension.version     = VERSION
   extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2022 #{extension.creator}"
+  extension.copyright   = "© 2023 #{extension.creator}"
 
   features = [
     TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],

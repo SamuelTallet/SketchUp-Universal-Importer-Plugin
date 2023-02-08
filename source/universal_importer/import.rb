@@ -99,7 +99,6 @@ module UniversalImporter
         apply_poly_reduction_to_inter_obj
       end
 
-      # @todo Convert the intermediate OBJ to final SKP instead of final DAE?
       convert_intermediate_to_final
       fix_faces_in_final_dae
       Sketchup.active_model.import(@final_dae_file_path)
@@ -123,7 +122,7 @@ module UniversalImporter
 
     end
 
-    # Prompts user to select source model.
+    # Prompts user to select source model file.
     def select_source_file
 
       @source_file_path = UI.openpanel(
@@ -135,8 +134,8 @@ module UniversalImporter
 
     end
 
-    # @todo Explain here why we need to create a hard link...
-    # @see https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues/8
+    # Creates a hard link to source model file.
+    # This workarounds Assimp issue with non-ASCII chars in filenames.
     def create_link_to_source_file
 
       source_file_ext = File.extname(@source_filename)
@@ -160,7 +159,7 @@ module UniversalImporter
 
     end
 
-    # Fixes, in intermediate MTL file, path to each texture embedded in model.
+    # Fixes, in intermediate MTL file, filename of each texture embedded in model.
     def fix_embedded_tex_in_inter_mtl
 
       inter_mtl = File.read(@inter_mtl_file_path)
@@ -173,10 +172,12 @@ module UniversalImporter
         texture_extensions = ['jpg', 'png', 'bmp', 'tga', 'tif']
         texture_index = 1000
         
+        # Let's say there are 1000 textures because we don't know how many have been extracted...
         1000.times do
 
-          # @todo Explain here why we go counter-wise.
           texture_index -= 1
+          # We go counter-wise to avoid incorrect replacement of references that contain smaller ones.
+          # For example: if *1 were replaced before *12, then 2 would become a broken reference!
 
           next unless inter_mtl.include?('*' + texture_index.to_s)
 
@@ -184,10 +185,12 @@ module UniversalImporter
             @source_dir, 'uir-source_img' + texture_index.to_s
           )
 
+          # And we don't know texture file extension...
           texture_extensions.each do |texture_extension|
 
             if File.exist?(texture_image_base_path + '.' + texture_extension)
 
+              # Replaces embedded reference with matching texture filename.
               inter_mtl.gsub!(
                 '*' + texture_index.to_s,
                 'uir-source_img' + texture_index.to_s + '.' + texture_extension

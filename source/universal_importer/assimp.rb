@@ -56,7 +56,7 @@ module UniversalImporter
 
     end
 
-    # Ensures Assimp is executable. XXX Relevant only to macOS.
+    # Ensures Assimp is executable. Relevant only to macOS.
     def self.make_executable
 
       FileUtils.chmod('+x', exe(shell_escape = false))
@@ -85,7 +85,7 @@ module UniversalImporter
       working_dir = '"' + working_dir + '"'; in_filename = '"' + in_filename + '"';
       out_filename = '"' + out_filename + '"'; log_filename = '"' + log_filename + '"';
 
-      # @todo Explain here why we go to working dir.
+      # We change current directory to workaround Assimp issue with non-ASCII chars in paths.
       command = "cd #{working_dir} && #{exe} export #{in_filename} #{out_filename} -tri"
       status = system(command)
 

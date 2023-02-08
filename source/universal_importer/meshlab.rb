@@ -44,7 +44,7 @@ module UniversalImporter
 
     end
 
-    # Ensures MeshLab is executable. XXX Relevant only to macOS.
+    # Ensures MeshLab is executable. Relevant only to macOS.
     def self.make_executable
 
       FileUtils.chmod('+x', exe)
@@ -112,7 +112,7 @@ module UniversalImporter
       raise ArgumentError, 'MLX Filename must be a String' unless mlx_filename.is_a?(String)
       raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
-      # @todo Explain here why we go to working dir.
+      # We change current directory to workaround MeshLab issue with non-ASCII chars in paths.
       command = 'cd "' + working_dir + '" && ' + 
         '"' + exe + '" -i "' + in_filename +
         '" -o "' + out_filename + '" -m wt' +

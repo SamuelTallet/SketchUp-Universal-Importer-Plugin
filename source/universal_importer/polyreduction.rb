@@ -34,7 +34,7 @@ module UniversalImporter
       @completed = false
       @model = Sketchup.active_model
 
-      # XXX Selection must be empty otherwise DAE export will be VERY slow.
+      # Selection must be empty otherwise DAE export will be VERY slow.
       if !@model.selection.empty?
         UI.messagebox(TRANSLATE['Selection must be empty!'])
         return
