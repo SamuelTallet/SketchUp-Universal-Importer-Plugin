@@ -65,6 +65,9 @@ module UniversalImporter
 
       mlx = '<!DOCTYPE FilterScript>' + "\n"
       mlx += '<FilterScript>' + "\n"
+      mlx += '<filter name="Remove Unreferenced Vertices"/>' + "\n"
+      mlx += '<filter name="Remove Duplicate Vertices"/>' + "\n"
+      mlx += '<filter name="Remove Duplicate Faces"/>' + "\n"
       mlx += '<filter name="Simplification: Quadric Edge Collapse Decimation'
 
       if with_texture
@@ -78,15 +81,12 @@ module UniversalImporter
       mlx += '<Param type="RichFloat" value="0" name="TargetPerc"/>' + "\n"
       mlx += '<Param type="RichFloat" value="1" name="QualityThr"/>' + "\n"
       mlx += '<Param type="RichInt" value="1" name="TextureWeight"/>' + "\n"
-      mlx += '<Param type="RichBool" value="true" name="PreserveBoundary"/>'
-      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveBoundary"/>' + "\n"
       mlx += '<Param type="RichFloat" value="1" name="BoundaryWeight"/>' + "\n"
-      mlx += '<Param type="RichBool" value="true" name="OptimalPlacement"/>'
-      mlx += "\n"
-      mlx += '<Param type="RichBool" value="true" name="PreserveNormal"/>'
-      mlx += "\n"
-      mlx += '<Param type="RichBool" value="true" name="PlanarSimplification"/>'
-      mlx += "\n"
+      mlx += '<Param type="RichBool" value="true" name="OptimalPlacement"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="PreserveNormal"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="PlanarSimplification"/>' + "\n"
+      mlx += '<Param type="RichBool" value="true" name="AutoClean"/>' + "\n"
       mlx += '</filter>' + "\n"
       mlx += '</FilterScript>'
 

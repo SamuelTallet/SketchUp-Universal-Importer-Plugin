@@ -370,6 +370,8 @@ module UniversalImporter
 
       final_dae.insert(0, "<!-- File modified by Universal Importer plugin for SketchUp. -->\n")
 
+      # Thanks to Piotr Rachtan for workaround.
+      # @see https://github.com/SketchUp/api-issue-tracker/issues/414
       faces_fix = '<extra><technique profile="GOOGLEEARTH">'
       faces_fix += '<double_sided>1</double_sided>'
       faces_fix += "</technique></extra>\n</profile_COMMON>"
