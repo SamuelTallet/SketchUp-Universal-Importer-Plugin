@@ -84,6 +84,11 @@ module UniversalImporter
       return unless @source_file_path.is_a?(String)
 
       @source_dir = File.dirname(@source_file_path)
+
+      # Source dir must be writable to host hard links we'll create later.
+      raise "Source dir of model to import is not writable: #{@source_dir}"\
+        unless File.writable?(@source_dir)
+
       @source_filename = File.basename(@source_file_path)
       
       create_link_to_source_file
@@ -115,7 +120,7 @@ module UniversalImporter
     rescue StandardError => exception
 
       UI.messagebox(
-        'Universal Importer Error: ' + exception.message +
+        'Universal Importer Error: ' + exception.message + "\n" +
         "\n" + exception.backtrace.first.to_s + "\n" +
         "\n" + 'Universal Importer Version: ' + VERSION
       )
