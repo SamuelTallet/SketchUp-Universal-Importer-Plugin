@@ -113,10 +113,17 @@ module UniversalImporter
       raise ArgumentError, 'Log Filename must be a String' unless log_filename.is_a?(String)
 
       # We change current directory to workaround MeshLab issue with non-ASCII chars in paths.
-      command = 'cd "' + working_dir + '" && ' + 
+      if Sketchup.platform == :platform_win
+        command = 'cd /d "' + working_dir + '" && ' + 
         '"' + exe + '" -i "' + in_filename +
         '" -o "' + out_filename + '" -m wt' +
         ' -s "' + mlx_filename + '"'
+      else
+        command = 'cd "' + working_dir + '" && ' + 
+        '"' + exe + '" -i "' + in_filename +
+        '" -o "' + out_filename + '" -m wt' +
+        ' -s "' + mlx_filename + '"'
+      end
 
       status = system(command)
 

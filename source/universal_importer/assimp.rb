@@ -86,7 +86,12 @@ module UniversalImporter
       out_filename = '"' + out_filename + '"'; log_filename = '"' + log_filename + '"';
 
       # We change current directory to workaround Assimp issue with non-ASCII chars in paths.
-      command = "cd #{working_dir} && #{exe} export #{in_filename} #{out_filename} -tri"
+      if Sketchup.platform == :platform_win
+        command = "cd /d #{working_dir} && #{exe} export #{in_filename} #{out_filename} -tri"
+      else
+        command = "cd #{working_dir} && #{exe} export #{in_filename} #{out_filename} -tri"
+      end
+
       status = system(command)
 
       if status != true
@@ -123,7 +128,12 @@ module UniversalImporter
       working_dir = '"' + working_dir + '"'; in_filename = '"' + in_filename + '"';
       log_filename = '"' + log_filename + '"'
 
-      command = "cd #{working_dir} && #{exe} extract #{in_filename}"
+      if Sketchup.platform == :platform_win
+        command = "cd /d #{working_dir} && #{exe} extract #{in_filename}"
+      else
+        command = "cd #{working_dir} && #{exe} extract #{in_filename}"
+      end
+
       status = system(command)
 
       if status != true
@@ -164,7 +174,12 @@ module UniversalImporter
 
       texture_refs = []
 
-      command = "cd #{working_dir} && #{exe} info #{in_filename} > #{log_filename}"
+      if Sketchup.platform == :platform_win
+        command = "cd /d #{working_dir} && #{exe} info #{in_filename} > #{log_filename}"
+      else
+        command = "cd #{working_dir} && #{exe} info #{in_filename} > #{log_filename}"
+      end
+
       status = system(command)
 
       if status != true
