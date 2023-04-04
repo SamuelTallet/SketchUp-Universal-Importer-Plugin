@@ -89,6 +89,9 @@ module UniversalImporter
       raise "Source dir of model to import is not writable: #{@source_dir}"\
         unless File.writable?(@source_dir)
 
+      # Deletes temporary files possibly left by a previous import fail.
+      delete_temp_files
+
       @source_filename = File.basename(@source_file_path)
       
       create_link_to_source_file
@@ -108,6 +111,10 @@ module UniversalImporter
       fix_faces_in_final_dae
       Sketchup.active_model.import(@final_dae_file_path)
 
+      # From now, SketchUp waits for user to place imported model as component.
+      # @see ModelObserver#onPlaceComponent
+      
+      # Import complete.
       @completed = true
 
       increment_imports_counter
@@ -124,6 +131,9 @@ module UniversalImporter
         "\n" + exception.backtrace.first.to_s + "\n" +
         "\n" + 'Universal Importer Version: ' + VERSION
       )
+
+      # Deletes temporary files possibly left.
+      delete_temp_files
 
     end
 

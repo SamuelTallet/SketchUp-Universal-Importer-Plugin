@@ -14,7 +14,7 @@
 
 require 'sketchup'
 require 'universal_importer/import'
-require 'universal_importer/polyreduction'
+require 'universal_importer/poly_reduction'
 require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.

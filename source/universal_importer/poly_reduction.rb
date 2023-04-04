@@ -32,6 +32,8 @@ module UniversalImporter
     def initialize
 
       @completed = false
+      
+      @temp_dir = File.join(Sketchup.temp_dir, 'Universal Importer')
       @model = Sketchup.active_model
 
       # Selection must be empty otherwise DAE export will be VERY slow.
@@ -73,6 +75,9 @@ module UniversalImporter
         "\n" + exception.backtrace.first.to_s + "\n" +
         "\n" + 'Universal Importer Version: ' + VERSION
       )
+
+      # Deletes temporary directory and files possibly left.
+      delete_temp_dir
       
     end
 
@@ -89,8 +94,6 @@ module UniversalImporter
 
     # Recreates temporary directory.
     def recreate_temp_dir
-
-      @temp_dir = File.join(Sketchup.temp_dir, 'Universal Importer')
 
       delete_temp_dir
       FileUtils.mkdir_p(@temp_dir)

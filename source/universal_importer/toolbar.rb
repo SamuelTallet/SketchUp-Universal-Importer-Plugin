@@ -14,7 +14,7 @@
 
 require 'fileutils'
 require 'sketchup'
-require 'universal_importer/polyreduction'
+require 'universal_importer/poly_reduction'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
