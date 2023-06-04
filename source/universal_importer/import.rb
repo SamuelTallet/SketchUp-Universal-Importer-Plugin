@@ -85,10 +85,6 @@ module UniversalImporter
 
       @source_dir = File.dirname(@source_file_path)
 
-      # Source dir must be writable to host hard links we'll create later.
-      raise "Source dir of model to import is not writable: #{@source_dir}"\
-        unless File.writable?(@source_dir)
-
       # Deletes temporary files possibly left by a previous import fail.
       delete_temp_files
 
