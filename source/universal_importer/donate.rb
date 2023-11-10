@@ -1,5 +1,5 @@
 # Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -14,6 +14,7 @@
 
 require 'sketchup'
 require 'fileutils'
+require 'universal_importer/import'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -48,33 +49,21 @@ module UniversalImporter
       @@url
     end
     
-    @@invitation_planned = false
-
-    # Plans an invitation to donate or marks this invitation as no longer planned.
-    # 
-    # @param [Boolean] planned
-    #
-    # @raise [ArgumentError]
-    def self.invitation_planned=(planned)
-      raise ArgumentError, 'Planned must be a Boolean' unless planned == true || planned == false
-
-      @@invitation_planned = planned
-    end
-
-    # Is an invitation to donate planned?
-    #
-    # @return [Boolean]
-    def self.invitation_planned?
-      @@invitation_planned
-    end
-
     # Invites user to donate.
     def self.invite_user
+      donation_intent_file = File.join(__dir__, 'donation.intent')
+
+      return if File.exist?(donation_intent_file) || Import.count < 2
+
       answer = UI.messagebox(
         TRANSLATE['Do you find Universal Importer plugin useful? You can support its author with a donation'] + ' ;)',
         MB_YESNO
       )
-      UI.openURL(@@url) if answer == IDYES
+
+      if answer == IDYES
+        UI.openURL(@@url)
+        File.write(donation_intent_file, 'Saved')
+      end
     end
 
   end

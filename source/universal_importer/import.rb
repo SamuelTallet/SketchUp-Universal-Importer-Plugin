@@ -78,6 +78,8 @@ module UniversalImporter
     # Imports a model.
     def initialize()
 
+      Donate.invite_user
+
       @completed = false
 
       select_source_file
@@ -113,12 +115,7 @@ module UniversalImporter
       # Import complete.
       @completed = true
 
-      increment_imports_counter
-
-      # Invites user to donate after 5, 25, 50 and every 100 completed imports.
-      if [5, 25, 50].include?(@imports_counter) || (@imports_counter % 100) == 0
-        Donate.invitation_planned = true
-      end
+      self.class.increment_counter
       
     rescue StandardError => exception
 
@@ -394,16 +391,28 @@ module UniversalImporter
     end
 
     # Increments "imports.count" file.
-    # Used to know if it's time to plan a donate invitation.
-    def increment_imports_counter
+    def self.increment_counter
 
       imports_count_file = File.join(__dir__, 'imports.count')
 
       File.write(imports_count_file, '0') unless File.exist?(imports_count_file)
-      @imports_counter = File.read(imports_count_file).to_i
+      imports_counter = File.read(imports_count_file).to_i
 
-      @imports_counter += 1
-      File.write(imports_count_file, @imports_counter.to_s)
+      imports_counter += 1
+      File.write(imports_count_file, imports_counter.to_s)
+
+    end
+
+    # Gets imports count.
+    #
+    # @see Donate.invite_user
+    def self.count
+
+      imports_count_file = File.join(__dir__, 'imports.count')
+
+      return 0 unless File.exist?(imports_count_file)
+
+      File.read(imports_count_file).to_i
 
     end
 

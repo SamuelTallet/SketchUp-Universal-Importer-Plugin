@@ -15,7 +15,6 @@
 require 'sketchup'
 require 'universal_importer/import'
 require 'universal_importer/poly_reduction'
-require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -36,11 +35,6 @@ module UniversalImporter
         PolyReduction.last.delete_temp_dir
         PolyReduction.last.show_face_count_summary
         PolyReduction.last = nil
-      end
-
-      if Donate.invitation_planned?
-        Donate.invite_user
-        Donate.invitation_planned = false
       end
 
     end
