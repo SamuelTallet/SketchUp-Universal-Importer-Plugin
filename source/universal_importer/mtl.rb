@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -17,132 +17,66 @@ require 'fileutils'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # Minimal OBJ MTL parser.
+  # Minimal Wavefront Material Template Library (MTL) parser.
+  # @see https://wikipedia.org/wiki/Material_Template_Library
   class MTL
+    attr_accessor :materials
 
-    # Parses an OBJ MTL file.
-    def initialize(file_path)
-
-      raise ArgumentError, 'File Path parameter must be a String.'\
-        unless file_path.is_a?(String)
-
-      file_contents = File.read(file_path)
-
-      @header = ''
-
-      @materials = []
-
-      file_contents.split('newmtl').each do |material_or_header|
-  
-        line_count = 0
-        
-        material_or_header.lines.each do |line|
-
-          # XXX Naturally, we ignore comments & empty lines.
-          next if line.start_with?('#') || line.strip.empty?
-
-          line_count += 1
-
-        end
-        
-        if line_count == 0
-
-          @header = material_or_header
-
-        else
-
-          @materials.push('newmtl' + material_or_header)
-
-        end
-      
-      end
-
-    end
-
-    # If they exist: returns materials without textures.
+    # Parses a MTL file.
     #
-    # @return [Array<String>]
-    def materials_wo_textures
+    # @param [String] file_path Absolute path to a MTL file.
+    def initialize(file_path)
+      # Generator name.
+      @generator = nil
+      # Materials names and properties.
+      @materials = {}
+      # Current material name.
+      material_name = nil
 
-      output = []
+      # For each line in the MTL file:
+      File.foreach(file_path) do |line|
+        # Removes lead/trail spaces of current line to align it with checks below.
+        line = line.strip
 
-      @materials.each do |material|
-
-        material_name = ''
-
-        material_has_texture = false
-
-        material.lines.each do |line|
-
-          if line.start_with?('newmtl')
-        
-            material_name = line.sub('newmtl', '').strip
-
-          elsif line.start_with?('map_Kd')
-
-            material_has_texture = true
-
-          end
-            
+        # If current line is a comment:
+        if line.start_with?("#")
+          # We assume the generator name is the first (non-empty) comment.
+          @generator = line if @generator.nil? && line =~ /#.+/
+          next # Let's search a material.
         end
 
-        if !material_has_texture
-
-          output.push(material_name)
-
+        # Checks if current line declares a material name or a material property.
+        case line
+        # New material (name):
+        when /^newmtl\s+(.+)/
+          material_name = $1
+          @materials[material_name] = {}
+        # Material diffuse color (r)(g)(b):
+        when /^Kd\s+(.+)\s+(.+)\s+(.+)/
+          @materials[material_name][:diffuse_color] = [$1.to_f, $2.to_f, $3.to_f]
+        # Material diffuse texture (path):
+        # Texture statements are not supported, but this should not be an issue...
+        when /^map_Kd\s+(.+)/
+          @materials[material_name][:diffuse_texture] = $1
         end
-
       end
-
-      output
-
     end
 
-    # Assigns a texture to a material.
-    def set_material_texture(material_name, texture_path)
-
-      new_materials = []
-
-      @materials.each do |material|
-
-        material_matches = false
-
-        material.lines.each do |line|
-
-          if line.start_with?('newmtl')\
-            && line.sub('newmtl', '').strip == material_name
-
-            material_matches = true
-
-            break
-
-          end
-            
-        end
-
-        if material_matches
-
-          material += 'map_Kd ' + texture_path + "\n\n"
-
-        end
-
-        new_materials.push(material)
-
-      end
-
-      @materials = new_materials
-
-    end
-
-    # Returns rebuilt file contents.
+    # Rebuilds the MTL file as a string.
+    # Unsupported material properties (for example `bump`) go to oblivion.
     #
     # @return [String]
-    def rebuilt_file_contents
+    def to_s
+      mtl = ""
+      mtl << "#{@generator}\n" if @generator
 
-      tag = "\n# File modified by Universal Importer plugin for SketchUp. \n\n"
+      @materials.each do |material_name, material|
+        mtl << "newmtl #{material_name}\n"
+        mtl << "Kd #{material[:diffuse_color].join(" ")}\n" if material[:diffuse_color]
+        mtl << "map_Kd #{material[:diffuse_texture]}\n" if material[:diffuse_texture]
+      end
 
-      @header + tag + @materials.join
-
+      mtl
     end
 
   end

@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -271,40 +271,40 @@ module UniversalImporter
 
     # Asks user for missing textures in intermediate MTL file.
     def ask_for_missing_tex_in_inter_mtl
-
+      user_provided_texture = false
       mtl = MTL.new(@inter_mtl_file_path)
-      mtl_materials_wo_textures = mtl.materials_wo_textures
 
-      return if mtl_materials_wo_textures.empty?
+      mtl.materials.each do |material_name, material|
 
-      mtl_materials_wo_textures.each do |material_name|
+        if !material[:diffuse_texture]
+          texture_path = UI.openpanel(
+            TRANSLATE['Select a Texture for Material:'] + ' ' + material_name,
+            nil, TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;*.tga;*.tif;||'
+          )
 
-        texture_path = UI.openpanel(
+          # Skips current material if user cancelled...
+          next if texture_path.nil?
 
-          TRANSLATE['Select a Texture for Material:'] + ' ' + material_name,
-          nil, TRANSLATE['Images'] + '|*.jpg;*.png;*.bmp;*.tga;*.tif;||'
+          user_provided_texture = true
+          texture_basename = File.basename(texture_path)
+          texture_link_or_copy_path = File.join(@source_dir, "uir-#{texture_basename}")
 
-        )
+          unless FS.create_hard_link(texture_link_or_copy_path, texture_path)
+            # Knowing that the texture file selected by the user may be in a different
+            # partition than the source directory and that a hard link cannot point to
+            # a file on a different partition, it is safer to fall back on a file copy.
+            FileUtils.copy(texture_path, texture_link_or_copy_path)
+          end
 
-        # Skips if user cancelled...
-        next if texture_path.nil?
-
-        texture_basename = File.basename(texture_path)
-        texture_link_or_copy_path = File.join(@source_dir, "uir-#{texture_basename}")
-
-        unless FS.create_hard_link(texture_link_or_copy_path, texture_path)
-          # Knowing that the texture file selected by the user may be in a different
-          # partition than the source directory and that a hard link cannot point to
-          # a file on a different partition, it is safer to fall back on a file copy.
-          FileUtils.copy(texture_path, texture_link_or_copy_path)
+          material[:diffuse_texture] = "uir-#{texture_basename}"
         end
-
-        mtl.set_material_texture(material_name, "uir-#{texture_basename}")
 
       end
 
-      File.write(@inter_mtl_file_path, mtl.rebuilt_file_contents)
-
+      if user_provided_texture
+        # In this case, an update of the intermediate MTL file is required.
+        File.write(@inter_mtl_file_path, mtl.to_s)
+      end
     end
 
     # Asks user for polygon reduction.
