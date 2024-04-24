@@ -31,6 +31,9 @@ module UniversalImporter
     # @see ModelObserver#onPlaceComponent
     attr_reader :completed, :source_filename
 
+    # Supported texture image file extensions.
+    @@texture_extensions = ['jpg', 'png', 'bmp', 'tga', 'tif']
+
     # Initializes options with default values.
     @@options = {
       :propose_polygon_reduction? => true,
@@ -169,49 +172,45 @@ module UniversalImporter
 
     # Fixes, in intermediate MTL file, filename of each texture embedded in model.
     def fix_embedded_tex_in_inter_mtl
+      # The embedded textures have been already extracted?
+      textures_extracted = false
+      intermediate_mtl = MTL.new(@inter_mtl_file_path)
 
-      inter_mtl = File.read(@inter_mtl_file_path)
+      # For each material in the intermediate MTL file:
+      intermediate_mtl.materials.each_value do |material|
 
-      # If intermediate MTL file references at least one embedded texture:
-      if inter_mtl.include?('*0')
+        # If current diffuse texture path is a reference to an embedded texture: e.g. *2
+        if material[:diffuse_texture] && material[:diffuse_texture] =~ /\*(\d+)/
+          texture_reference_number = $1
 
-        Assimp.extract_textures(@source_dir, @source_link_name, 'uir-assimp.log')
+          unless textures_extracted
+            # Extracts once for all, to the disk, the embedded textures in the model.
+            Assimp.extract_textures(@source_dir, @source_link_name, 'uir-assimp.log')
+            textures_extracted = true
+          end
 
-        texture_extensions = ['jpg', 'png', 'bmp', 'tga', 'tif']
-        texture_index = 1000
-        
-        # Let's say there are 1000 textures because we don't know how many have been extracted...
-        1000.times do
+          # It's easy to deduce the filename of a texture extracted by Assimp...
+          texture_relative_path = 'uir-source_img' + texture_reference_number
+          texture_absolute_path = File.join(@source_dir, texture_relative_path)
 
-          texture_index -= 1
-          # We go counter-wise to avoid incorrect replacement of references that contain smaller ones.
-          # For example: if *1 were replaced before *12, then 2 would become a broken reference!
+          # but we don't know the file extension of the extracted texture, so we try each:
+          @@texture_extensions.each do |texture_extension|
 
-          next unless inter_mtl.include?('*' + texture_index.to_s)
-
-          texture_image_base_path = File.join(
-            @source_dir, 'uir-source_img' + texture_index.to_s
-          )
-
-          # And we don't know texture file extension...
-          texture_extensions.each do |texture_extension|
-
-            if File.exist?(texture_image_base_path + '.' + texture_extension)
-
-              # Replaces embedded reference with matching texture filename.
-              inter_mtl.gsub!(
-                '*' + texture_index.to_s,
-                'uir-source_img' + texture_index.to_s + '.' + texture_extension
-              )
-  
+            if File.exist?(texture_absolute_path + '.' + texture_extension)
+              # Replaces embedded diffuse texture reference with matching texture filename.
+              material[:diffuse_texture] = texture_relative_path + '.' + texture_extension
+              break # Jumps to the next material.
             end
 
           end
 
         end
 
-        File.write(@inter_mtl_file_path, inter_mtl)
+      end
 
+      if textures_extracted
+        # In this case, an update of the intermediate MTL file is required.
+        File.write(@inter_mtl_file_path, intermediate_mtl.to_s)
       end
 
     end
