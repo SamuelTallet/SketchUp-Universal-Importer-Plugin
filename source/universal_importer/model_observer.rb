@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -14,6 +14,7 @@
 
 require 'sketchup'
 require 'universal_importer/import'
+require 'universal_importer/collada'
 require 'universal_importer/poly_reduction'
 
 # Universal Importer plugin namespace.
@@ -27,6 +28,7 @@ module UniversalImporter
 
       if !Import.last.nil? && Import.last.completed
         Import.last.delete_temp_files
+        COLLADA.fix_materials_names(Import.last.materials_names)
         component.definition.name = Import.last.source_filename
         Import.last = nil
       end
