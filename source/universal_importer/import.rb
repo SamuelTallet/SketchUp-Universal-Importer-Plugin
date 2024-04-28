@@ -338,7 +338,6 @@ module UniversalImporter
           @materials_names[texture_color_integers] = material_name
         end
       }
-
     end
 
     # Asks user for polygon reduction.

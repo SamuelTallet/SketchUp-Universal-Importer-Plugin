@@ -35,6 +35,7 @@ module UniversalImporter
 
       if !PolyReduction.last.nil? && PolyReduction.last.completed
         PolyReduction.last.delete_temp_dir
+        COLLADA.fix_materials_names(PolyReduction.last.materials_names)
         PolyReduction.last.show_face_count_summary
         PolyReduction.last = nil
       end
