@@ -21,10 +21,10 @@ module UniversalImporter
   # @see https://en.wikipedia.org/wiki/COLLADA
   module COLLADA
 
-    # Fixes the material names of the active model following a DAE import.
-    # SketchUp imports DAE files with generic materials names, e.g. `<auto>1`
+    # Fixes the materials names of the active SketchUp model following a DAE import.
+    # Because SketchUp imports DAE files with generic materials names, e.g. `<auto>1`
     #
-    # @param [Hash] materials_name Materials names indexed by texture path.
+    # @param [Hash] materials_name Materials names indexed by texture path or color.
     #
     # @raise [ArgumentError]
     def self.fix_materials_names(materials_names)
@@ -39,8 +39,11 @@ module UniversalImporter
           if materials_names.key?(material.texture.filename)
             material.name = materials_names[material.texture.filename]
           end
+        elsif material.color.is_a?(Sketchup::Color)
+          if materials_names.key?(material.color.to_a)
+            material.name = materials_names[material.color.to_a]
+          end
         end
-        # @todo Find a way to restore the name of a material only made of a color.
       }
 
     end
