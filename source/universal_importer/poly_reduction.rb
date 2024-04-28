@@ -17,6 +17,7 @@ require 'fileutils'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
+require 'universal_importer/collada'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -67,7 +68,7 @@ module UniversalImporter
       apply_polygon_reduction
 
       convert_from_obj_to_dae
-      fix_faces_in_dae_import
+      COLLADA.fix_double_sided_faces(@dae_import_file_path)
       convert_from_dae_to_skp
 
       @completed = true
@@ -187,23 +188,6 @@ module UniversalImporter
     def convert_from_obj_to_dae
       Assimp.convert_model(@temp_dir, 'export.obj', 'import.dae',  'assimp.log')
       @dae_import_file_path = File.join(@temp_dir, 'import.dae')
-    end
-
-    # Fixes double sided faces in DAE file to import.
-    def fix_faces_in_dae_import
-      dae_import = File.read(@dae_import_file_path)
-
-      dae_import.insert(0, "<!-- File modified by Universal Importer plugin for SketchUp. -->\n")
-
-      # Thanks to Piotr Rachtan for workaround.
-      # @see https://github.com/SketchUp/api-issue-tracker/issues/414
-      faces_fix = '<extra><technique profile="GOOGLEEARTH">'
-      faces_fix += '<double_sided>1</double_sided>'
-      faces_fix += "</technique></extra>\n</profile_COMMON>"
-
-      dae_import.gsub!('</profile_COMMON>', faces_fix)
-
-      File.write(@dae_import_file_path, dae_import)
     end
 
     # Converts current SketchUp model to SKP format.

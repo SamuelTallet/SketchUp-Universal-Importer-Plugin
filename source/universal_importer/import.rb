@@ -18,6 +18,7 @@ require 'universal_importer/fs'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
+require 'universal_importer/collada'
 require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
@@ -112,7 +113,7 @@ module UniversalImporter
       end
 
       convert_intermediate_to_final
-      fix_faces_in_final_dae
+      COLLADA.fix_double_sided_faces(@final_dae_file_path)
       Sketchup.active_model.import(@final_dae_file_path)
 
       # From now, SketchUp waits for user to place imported model as component.
@@ -402,25 +403,6 @@ module UniversalImporter
       Assimp.convert_model(@source_dir, 'uir-inter.obj', 'uir-final.dae', 'uir-assimp.log')
       @final_dae_file_path = File.join(@source_dir, 'uir-final.dae')
       
-    end
-
-    # Fixes double sided faces in final DAE file.
-    def fix_faces_in_final_dae
-
-      final_dae = File.read(@final_dae_file_path)
-
-      final_dae.insert(0, "<!-- File modified by Universal Importer plugin for SketchUp. -->\n")
-
-      # Thanks to Piotr Rachtan for workaround.
-      # @see https://github.com/SketchUp/api-issue-tracker/issues/414
-      faces_fix = '<extra><technique profile="GOOGLEEARTH">'
-      faces_fix += '<double_sided>1</double_sided>'
-      faces_fix += "</technique></extra>\n</profile_COMMON>"
-
-      final_dae.gsub!('</profile_COMMON>', faces_fix)
-
-      File.write(@final_dae_file_path, final_dae)
-
     end
 
     # Increments "imports.count" file.

@@ -25,7 +25,6 @@ module UniversalImporter
     # Because SketchUp imports DAE files with generic materials names, e.g. `<auto>1`
     #
     # @param [Hash] materials_name Materials names indexed by texture path or color.
-    #
     # @raise [ArgumentError]
     def self.fix_materials_names(materials_names)
 
@@ -45,6 +44,29 @@ module UniversalImporter
           end
         end
       }
+
+    end
+
+    # Fixes the double sided faces in a DAE file to import in SketchUp.
+    # @see https://github.com/SketchUp/api-issue-tracker/issues/414
+    #
+    # @param [String] dae_file_path Absolute path to the DAE file to fix.
+    # @raise [ArgumentError]
+    def self.fix_double_sided_faces(dae_file_path)
+
+      raise ArgumentError, 'dae_file_path must be a String' \
+        unless dae_file_path.is_a?(String)
+
+      dae_file_contents = File.read(dae_file_path)
+
+      # Thanks to Piotr Rachtan for this workaround.
+      faces_fix = '<extra><technique profile="GOOGLEEARTH">'
+      faces_fix += '<double_sided>1</double_sided>'
+      faces_fix += "</technique></extra>\n</profile_COMMON>"
+
+      dae_file_contents.gsub!('</profile_COMMON>', faces_fix)
+
+      File.write(dae_file_path, dae_file_contents)
 
     end
 
