@@ -16,7 +16,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - B3D
 - BLEND
 - BVH
-- CMS
+- CSM
 - COB
 - DAE/Collada
 - DXF
