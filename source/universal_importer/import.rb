@@ -20,6 +20,7 @@ require 'universal_importer/mtl'
 require 'universal_importer/meshlab'
 require 'universal_importer/collada'
 require 'universal_importer/donate'
+require 'universal_importer/imports'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -122,7 +123,7 @@ module UniversalImporter
       # Import complete.
       @completed = true
 
-      self.class.increment_counter
+      Imports.increment_counter
       
     rescue StandardError => exception
 
@@ -403,32 +404,6 @@ module UniversalImporter
       Assimp.convert_model(@source_dir, 'uir-inter.obj', 'uir-final.dae', 'uir-assimp.log')
       @final_dae_file_path = File.join(@source_dir, 'uir-final.dae')
       
-    end
-
-    # Increments "imports.count" file.
-    def self.increment_counter
-
-      imports_count_file = File.join(__dir__, 'imports.count')
-
-      File.write(imports_count_file, '0') unless File.exist?(imports_count_file)
-      imports_counter = File.read(imports_count_file).to_i
-
-      imports_counter += 1
-      File.write(imports_count_file, imports_counter.to_s)
-
-    end
-
-    # Gets imports count.
-    #
-    # @see Donate.invite_user
-    def self.count
-
-      imports_count_file = File.join(__dir__, 'imports.count')
-
-      return 0 unless File.exist?(imports_count_file)
-
-      File.read(imports_count_file).to_i
-
     end
 
     # Last instance of Import class.

@@ -1,5 +1,5 @@
 # Universal Importer (UIR) extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -14,7 +14,7 @@
 
 require 'sketchup'
 require 'fileutils'
-require 'universal_importer/import'
+require 'universal_importer/imports'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
@@ -22,6 +22,8 @@ module UniversalImporter
   # Donate helper.
   module Donate
 
+    # URL to donate.
+    # @type [String]
     @@url = 'https://www.paypal.me/SamuelTallet'
 
     # Fetches URL to donate from GitHub or defaults to PayPal.Me URL.
@@ -33,7 +35,7 @@ module UniversalImporter
       raise 'cURL command failed with exit code ' + $?.exitstatus.to_s unless $?.success?
 
       curl_response = File.read(curl_output_file).strip
-      raise "Bad response: #{curl_response}" unless curl_response.start_with?('https://')
+      raise "bad response: #{curl_response}" unless curl_response.start_with?('https://')
 
       @@url = curl_response
 
@@ -42,7 +44,7 @@ module UniversalImporter
       puts "[Universal Importer] Error occured while fetching donate.url: #{error.message}"
     end
 
-    # URL to donate.
+    # Gets URL to donate.
     #
     # @return [String]
     def self.url
@@ -51,9 +53,9 @@ module UniversalImporter
     
     # Invites user to donate.
     def self.invite_user
-      donation_intent_file = File.join(__dir__, 'donation.intent')
+      intent_file = File.join(__dir__, 'User Data', 'donation.intent')
 
-      return if File.exist?(donation_intent_file) || Import.count < 2
+      return if File.exist?(intent_file) || Imports.count < 2
 
       answer = UI.messagebox(
         TRANSLATE['Do you find Universal Importer plugin useful? You can support its author with a donation'] + ' ;)',
@@ -62,7 +64,7 @@ module UniversalImporter
 
       if answer == IDYES
         UI.openURL(@@url)
-        File.write(donation_intent_file, 'Saved')
+        File.write(intent_file, 'Saved')
       end
     end
 
