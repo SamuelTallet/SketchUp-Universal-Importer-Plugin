@@ -102,12 +102,15 @@ module UniversalImporter
       @source_filename = File.basename(@source_file_path)
       @source_file_ext = File.extname(@source_filename).delete('.').downcase
 
+      @inter_mtl_file_path = File.join(@source_dir, 'uir-inter.mtl')
       # Materials names indexed by texture path or color.
       @materials_names = {}
 
       if CAD_MODEL_FILE_EXTS.include?(@source_file_ext)
 
         convert_cad_source_to_intermediate
+        backup_materials_names_for_later
+
         # @todo handle polygon reduction.
 
       else
@@ -168,7 +171,7 @@ module UniversalImporter
 
     end
 
-    # Converts CAD source model to intermediate OBJ file with Mayo.
+    # Converts CAD source model to intermediate OBJ/MTL files with Mayo.
     def convert_cad_source_to_intermediate
 
       MayoConv.export_model(
@@ -193,7 +196,6 @@ module UniversalImporter
 
       Assimp.convert_model(@source_dir, @source_link_name, 'uir-inter.obj', 'uir-assimp.log')
 
-      @inter_mtl_file_path = File.join(@source_dir, 'uir-inter.mtl')
       inter_mtl = File.read(@inter_mtl_file_path)
       # Disables transparency (d) in intermediate MTL file produced by Assimp.
       inter_mtl.gsub!("\nd ", "\n# d ")
@@ -342,8 +344,10 @@ module UniversalImporter
     # @see ModelObserver#onPlaceComponent
     # @see COLLADA.fix_materials_names
     def backup_materials_names_for_later
-      intermediate_mtl = MTL.new(@inter_mtl_file_path)
+      # Sometimes Mayo Conv doesn't output a MTL file.
+      return unless File.exist?(@inter_mtl_file_path)
 
+      intermediate_mtl = MTL.new(@inter_mtl_file_path)
       # For each material in the intermediate MTL file...
       intermediate_mtl.materials.each { |material_name, material|
         # Indexes current material name by texture path:
