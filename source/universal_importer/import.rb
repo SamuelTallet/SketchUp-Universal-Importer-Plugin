@@ -14,6 +14,7 @@
 
 require 'sketchup'
 require 'fileutils'
+require 'universal_importer/mayo_conv'
 require 'universal_importer/fs'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
@@ -30,6 +31,9 @@ module UniversalImporter
 
     # Supported texture image file extensions.
     SUPPORTED_TEXTURE_EXTS = ['jpg', 'png', 'bmp', 'tga', 'tif']
+
+    # CAD model file extensions (better) supported by Mayo Conv.
+    CAD_MODEL_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep']
 
     # Completion status, source filename and materials names.
     #
@@ -92,25 +96,38 @@ module UniversalImporter
 
       @source_dir = File.dirname(@source_file_path)
 
-      # Deletes temporary files possibly left by a previous import fail.
+      # Deletes temporary files possibly left in source directory by a previous import fail.
       delete_temp_files
 
       @source_filename = File.basename(@source_file_path)
-      
-      create_link_to_source_file
+      @source_file_ext = File.extname(@source_filename).delete('.').downcase
 
-      convert_source_to_intermediate
-      fix_embedded_tex_in_inter_mtl
-      fix_external_tex_in_inter_mtl
+      # Materials names indexed by texture path or color.
+      @materials_names = {}
 
-      ask_for_missing_tex_in_inter_mtl if @@options[:claim_missing_textures?]
+      if CAD_MODEL_FILE_EXTS.include?(@source_file_ext)
 
-      # It's crucial to save the materials names now as MeshLab renames them.
-      backup_materials_names_for_later
+        convert_cad_source_to_intermediate
+        # @todo handle polygon reduction.
 
-      if @@options[:propose_polygon_reduction?]
-        ask_for_polygon_reduction
-        apply_poly_reduction_to_inter_obj
+      else
+
+        create_link_to_source_file
+
+        convert_source_link_to_intermediate
+        fix_embedded_tex_in_inter_mtl
+        fix_external_tex_in_inter_mtl
+
+        ask_for_missing_tex_in_inter_mtl if @@options[:claim_missing_textures?]
+
+        # It's crucial to save the materials names now as MeshLab renames them.
+        backup_materials_names_for_later
+
+        if @@options[:propose_polygon_reduction?]
+          ask_for_polygon_reduction
+          apply_poly_reduction_to_inter_obj
+        end
+
       end
 
       convert_intermediate_to_final
@@ -119,12 +136,12 @@ module UniversalImporter
 
       # From now, SketchUp waits for user to place imported model as component.
       # @see ModelObserver#onPlaceComponent
-      
+
       # Import complete.
       @completed = true
 
       Imports.increment_counter
-      
+
     rescue StandardError => exception
 
       UI.messagebox(
@@ -145,7 +162,17 @@ module UniversalImporter
         TRANSLATE['Select a 3D Model'], nil, TRANSLATE['3D Models'] +
         '|' +
         '*.3d;*.3ds;*.3mf;*.ac;*.ac3d;*.acc;*.amf;*.ase;*.ask;*.assbin;*.b3d;*.blend;*.bsp;*.bvh;*.cob;*.csm;*.dae;*.dxf;*.enff;*.fbx;*.glb;*.gltf;*.hmp;*.ifc;*.ifczip;*.irr;*.irrmesh;*.lwo;*.lws;*.lxo;*.md2;*.md3;*.md5anim;*.md5camera;*.md5mesh;*.mdc;*.mdl;*.mesh;*.mesh.xml;*.mot;*.ms3d;*.ndo;*.nff;*.obj;*.off;*.ogex;*.pk3;*.ply;*.pmx;*.prj;*.q3o;*.q3s;*.raw;*.scn;*.sib;*.smd;*.step;*.stl;*.stp;*.ter;*.uc;*.vta;*.x;*.x3d;*.x3db;*.xgl;*.xml;*.zae;*.zgl' +
+        ';*.iges;*.igs;*.brep' +
         ';||'
+      )
+
+    end
+
+    # Converts CAD source model to intermediate OBJ file with Mayo.
+    def convert_cad_source_to_intermediate
+
+      MayoConv.export_model(
+        @source_file_path, File.join(@source_dir, 'uir-inter.obj')
       )
 
     end
@@ -154,16 +181,15 @@ module UniversalImporter
     # This workarounds Assimp issue with non-ASCII chars in filenames.
     def create_link_to_source_file
 
-      source_file_ext = File.extname(@source_filename)
-      @source_link_name = 'uir-source' + source_file_ext
+      @source_link_name = 'uir-source.' + @source_file_ext
       source_link_path = File.join(@source_dir, @source_link_name)
 
       FS.create_hard_link(source_link_path, @source_file_path)
 
     end
 
-    # Converts source model to intermediate OBJ/MTL files.
-    def convert_source_to_intermediate
+    # Converts linked source model to intermediate OBJ/MTL files.
+    def convert_source_link_to_intermediate
 
       Assimp.convert_model(@source_dir, @source_link_name, 'uir-inter.obj', 'uir-assimp.log')
 
@@ -318,9 +344,6 @@ module UniversalImporter
     def backup_materials_names_for_later
       intermediate_mtl = MTL.new(@inter_mtl_file_path)
 
-      # Materials names indexed by texture path or color.
-      @materials_names = {}
-
       # For each material in the intermediate MTL file...
       intermediate_mtl.materials.each { |material_name, material|
         # Indexes current material name by texture path:
@@ -403,7 +426,7 @@ module UniversalImporter
 
       Assimp.convert_model(@source_dir, 'uir-inter.obj', 'uir-final.dae', 'uir-assimp.log')
       @final_dae_file_path = File.join(@source_dir, 'uir-final.dae')
-      
+
     end
 
     # Last instance of Import class.

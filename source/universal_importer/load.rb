@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2022 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -13,6 +13,7 @@
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
 require 'sketchup'
+require 'universal_importer/mayo_conv'
 require 'universal_importer/assimp'
 require 'universal_importer/meshlab'
 require 'universal_importer/app_observer'
@@ -23,6 +24,8 @@ require 'universal_importer/donate'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
+
+  MayoConv.set_executable_path
 
   if Sketchup.platform == :platform_osx
     Assimp.make_executable
