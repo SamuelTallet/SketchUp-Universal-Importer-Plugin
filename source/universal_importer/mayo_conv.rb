@@ -20,7 +20,7 @@ module UniversalImporter
   # A wrapper for the Mayo Conv(erter) CLI.
   # 
   # @see https://github.com/fougue/mayo
-  module Mayo
+  module MayoConv
 
     # Absolute path to Mayo Conv executable.
     #
