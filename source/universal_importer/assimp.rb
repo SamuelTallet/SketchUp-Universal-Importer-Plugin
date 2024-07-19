@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -57,7 +57,7 @@ module UniversalImporter
     end
 
     # Ensures Assimp is executable. Relevant only to macOS.
-    def self.make_executable
+    def self.ensure_executable
 
       FileUtils.chmod('+x', exe(shell_escape = false))
 

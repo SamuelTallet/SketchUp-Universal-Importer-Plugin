@@ -28,8 +28,8 @@ module UniversalImporter
   MayoConv.set_executable_path
 
   if Sketchup.platform == :platform_osx
-    Assimp.make_executable
-    MeshLab.make_executable
+    Assimp.ensure_executable
+    MeshLab.ensure_executable
   end
 
   Sketchup.add_observer(AppObserver.new)
