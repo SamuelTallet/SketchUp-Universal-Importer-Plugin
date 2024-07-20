@@ -90,7 +90,7 @@ Report a bug on official [Universal Importer forum thread](https://sketchucation
 
 ## Thanks
 
-This plugin relies on [Assimp library](https://github.com/assimp/assimp) and [MeshLab software](https://github.com/cnr-isti-vclab/meshlab). Thanks to Assimp's and MeshLab's contributors.
+This plugin relies on [Assimp](https://github.com/assimp/assimp) library, [Mayo](https://github.com/fougue/mayo) and [MeshLab](https://github.com/cnr-isti-vclab/meshlab) softwares. Thanks to their awesome contributors.
 
 ## License
 
