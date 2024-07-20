@@ -17,7 +17,7 @@ require 'sketchup'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # Things shared by importers, such as completed imports count.
+  # Things shared by imports, such as count of completed imports.
   module Imports
 
     # Absolute path to "imports.count" file.
