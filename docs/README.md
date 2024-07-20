@@ -26,6 +26,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - glTF 2.0 + GLB
 - HMB
 - IFC-STEP
+- IQM
 - IRR / IRRMESH
 - LWO
 - LWS
