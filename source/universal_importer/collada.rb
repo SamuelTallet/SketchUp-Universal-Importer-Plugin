@@ -70,6 +70,34 @@ module UniversalImporter
 
     end
 
+    # Replaces the "Up axis" in a DAE file.
+    #
+    # @param [String] dae_file_path Absolute path to the DAE file to modify.
+    # @param [Symbol] axis_before Up axis before DAE modification.
+    # @param [Symbol] axis_after Up axis after DAE modification.
+    # @raise [ArgumentError]
+    def self.replace_up_axis(dae_file_path, axis_before, axis_after)
+
+      raise ArgumentError, 'dae_file_path must be a String' \
+        unless dae_file_path.is_a?(String)
+
+      raise ArgumentError, 'axis_before must be X or Y or Z' \
+        unless [:X, :Y, :Z].include?(axis_before)
+
+      raise ArgumentError, 'axis_after must be X or Y or Z' \
+        unless [:X, :Y, :Z].include?(axis_after)
+
+      dae_file_contents = File.read(dae_file_path)
+
+      dae_file_contents.sub!(
+        "<up_axis>#{axis_before.to_s}_UP</up_axis>",
+        "<up_axis>#{axis_after.to_s}_UP</up_axis>"
+      )
+
+      File.write(dae_file_path, dae_file_contents)
+
+    end
+
   end
 
 end

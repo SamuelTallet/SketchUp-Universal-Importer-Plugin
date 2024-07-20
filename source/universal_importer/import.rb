@@ -107,13 +107,20 @@ module UniversalImporter
       @materials_names = {}
 
       if CAD_MODEL_FILE_EXTS.include?(@source_file_ext)
+        # Import source file with Mayo:
 
         convert_cad_source_to_intermediate
         backup_materials_names_for_later
 
         # @todo handle polygon reduction.
 
+        convert_intermediate_to_final
+
+        # @fixme There are cases when up axis is wrong.
+        COLLADA.replace_up_axis(@final_dae_file_path, :Y, :Z)
+
       else
+        # Import source file with Assimp:
 
         create_link_to_source_file
 
@@ -131,9 +138,10 @@ module UniversalImporter
           apply_poly_reduction_to_inter_obj
         end
 
+        convert_intermediate_to_final
+
       end
 
-      convert_intermediate_to_final
       COLLADA.fix_double_sided_faces(@final_dae_file_path)
       Sketchup.active_model.import(@final_dae_file_path)
 
