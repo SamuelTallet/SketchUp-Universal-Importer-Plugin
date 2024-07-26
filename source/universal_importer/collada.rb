@@ -24,7 +24,7 @@ module UniversalImporter
     # Fixes the materials names of the active SketchUp model following a DAE import.
     # Because SketchUp imports DAE files with generic materials names, e.g. `<auto>1`
     #
-    # @param [Hash] materials_name Materials names indexed by texture path or color.
+    # @param [Hash] materials_names Materials names indexed by texture path or color.
     # @raise [ArgumentError]
     def self.fix_materials_names(materials_names)
 
@@ -70,7 +70,7 @@ module UniversalImporter
 
     end
 
-    # Replaces the "Up axis" in a DAE file.
+    # Replaces the "up axis" in a DAE file.
     #
     # @param [String] dae_file_path Absolute path to the DAE file to modify.
     # @param [Symbol] axis_before Up axis before DAE modification.
