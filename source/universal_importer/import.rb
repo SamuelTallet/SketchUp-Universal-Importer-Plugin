@@ -35,10 +35,10 @@ module UniversalImporter
     # CAD model file extensions (better) supported by Mayo Conv.
     CAD_MODEL_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep']
 
-    # Completion status, source filename and materials names.
+    # Completion status, source filename, source units and materials names.
     #
     # @see ModelObserver#onPlaceComponent
-    attr_reader :completed, :source_filename, :materials_names
+    attr_reader :completed, :source_filename, :source_units, :materials_names
 
     # Initializes options with default values.
     @@options = {
@@ -101,6 +101,8 @@ module UniversalImporter
 
       @source_filename = File.basename(@source_file_path)
       @source_file_ext = File.extname(@source_filename).delete('.').downcase
+
+      specify_source_units
 
       @inter_mtl_file_path = File.join(@source_dir, 'uir-inter.mtl')
       # Materials names indexed by texture path or color.
@@ -177,6 +179,26 @@ module UniversalImporter
         ';||'
       )
 
+    end
+
+    # Prompts user to specify source model units.
+    def specify_source_units
+      prompts = [TRANSLATE['Source model units'] + ' ']
+
+      # @todo set default unit based on source file extension.
+      defaults = ['m']
+      @source_units = defaults[0]
+
+      options = ['mm', 'cm', 'm', 'in', 'ft', 'yd']
+      list = [options.join('|')]
+      title = PLUGIN_NAME
+      user_input = UI.inputbox(prompts, defaults, list, title)
+
+      if user_input.is_a?(Array)
+        @source_units = user_input[0]
+      end
+
+      puts @source_units # DEBUG
     end
 
     # Converts CAD source model to intermediate OBJ/MTL files with Mayo.
