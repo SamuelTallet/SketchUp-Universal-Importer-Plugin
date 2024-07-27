@@ -21,6 +21,7 @@
 "Select a 3D Model"="3D モデルを選択";
 "3D Models"="3Dモデル";
 "Source model units"="ソース・モデルの単位";
+"Scaling"="拡大縮小";
 "Select a Texture for Material:"="素材のテクスチャを選択:";
 "Images"="画像";
 "Model has"="モデルは";

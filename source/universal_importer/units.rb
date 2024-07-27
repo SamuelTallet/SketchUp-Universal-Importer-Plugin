@@ -17,9 +17,16 @@ require 'sketchup'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # A helper to fix the "Wrong scale/size" issue.
-  # @see https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues/6
-  module Scale
+  # Length units helper for 3D models.
+  module Units
+
+    # Supported units.
+    MILLIMETERS = :mm
+    CENTIMETERS = :cm
+    METERS = :m
+    INCHES = :in
+    FEET = :ft
+    YARDS = :yd
 
     # Conversion table, from xy units to meters.
     AS_METERS = {
@@ -30,12 +37,29 @@ module UniversalImporter
       :yd => 0.9144
     }
 
+    # Returns the most probable units for a given file extension.
+    #
+    # @param [String] file_extension
+    # @return [Symbol]
+    def self.guess_by(file_extension)
+      case file_extension
+      when '3mf', 'brep', 'dxf', 'iges', 'igs', 'step', 'stp', 'stl'
+        MILLIMETERS
+      when 'fbx'
+        CENTIMETERS
+      when '3ds'
+        INCHES
+      else # gltf, blend, lwo, wrl, dae, obj, etc.
+        METERS
+      end
+    end
+
     # Assuming it is in meters, resizes a component to be in other units.
     #
     # @param [Sketchup::ComponentInstance] component
     # @param [Symbol] units
     # @raise [ArgumentError]
-    def self.change_units(component, units)
+    def self.change(component, units)
       raise ArgumentError, 'component must be a Sketchup::ComponentInstance' \
         unless component.is_a?(Sketchup::ComponentInstance)
 

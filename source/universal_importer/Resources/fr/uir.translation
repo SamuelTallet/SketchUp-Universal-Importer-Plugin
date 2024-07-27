@@ -21,6 +21,7 @@
 "Select a 3D Model"="Sélectionner un modèle 3D";
 "3D Models"="Modèles 3D";
 "Source model units"="Unités du modèle source";
+"Scaling"="Mise à l'échelle";
 "Select a Texture for Material:"="Sélectionner une texture pour le matériau :";
 "Images"="Images";
 "Model has"="Le modèle a";

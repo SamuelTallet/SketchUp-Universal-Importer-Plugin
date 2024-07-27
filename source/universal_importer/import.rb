@@ -14,6 +14,7 @@
 
 require 'sketchup'
 require 'fileutils'
+require 'universal_importer/units'
 require 'universal_importer/mayo_conv'
 require 'universal_importer/fs'
 require 'universal_importer/assimp'
@@ -185,13 +186,20 @@ module UniversalImporter
     def specify_source_units
       prompts = [TRANSLATE['Source model units'] + ' ']
 
-      # @todo set default unit based on source file extension.
-      defaults = ['m']
-      @source_units = defaults[0]
+      # Units of the source model.
+      # @type [Symbol, String]
+      @source_units = Units.guess_by(@source_file_ext)
 
-      options = ['mm', 'cm', 'm', 'in', 'ft', 'yd']
+      # It is not always possible (unitless format, unknown specifications) or easy (exporters diversity)
+      # to automatically determine the units of the source model. We took the shortcut of making a blind
+      # guess from the source file extension. This default speeds up the workflow with a not-too-bad error
+      # rate, but sooner or later, a visual interface will be needed to better handle this scaling issue.
+      defaults = [@source_units]
+
+      options = [Units::MILLIMETERS, Units::CENTIMETERS, Units::METERS, Units::INCHES, Units::FEET, Units::YARDS]
       list = [options.join('|')]
-      title = PLUGIN_NAME
+
+      title = TRANSLATE['Scaling'] + ' - ' + PLUGIN_NAME
       user_input = UI.inputbox(prompts, defaults, list, title)
 
       if user_input.is_a?(Array)
