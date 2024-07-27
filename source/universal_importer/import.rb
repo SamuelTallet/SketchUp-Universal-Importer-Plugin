@@ -197,8 +197,6 @@ module UniversalImporter
       if user_input.is_a?(Array)
         @source_units = user_input[0]
       end
-
-      puts @source_units # DEBUG
     end
 
     # Converts CAD source model to intermediate OBJ/MTL files with Mayo.
