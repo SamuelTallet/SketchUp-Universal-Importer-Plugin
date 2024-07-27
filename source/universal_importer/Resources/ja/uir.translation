@@ -3,7 +3,7 @@
 // Universal Importer Plugin Japanese Translation
 //
 // Authors: PC-Trace, DeepL
-// Last Update: February 3, 2023
+// Last Update: July 27, 2024
 /////////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -20,6 +20,7 @@
 
 "Select a 3D Model"="3D モデルを選択";
 "3D Models"="3Dモデル";
+"Source model units"="ソース・モデルの単位";
 "Select a Texture for Material:"="素材のテクスチャを選択:";
 "Images"="画像";
 "Model has"="モデルは";

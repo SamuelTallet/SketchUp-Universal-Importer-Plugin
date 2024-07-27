@@ -3,7 +3,7 @@
 // Universal Importer Plugin French Translation
 //
 // Author: Samuel Tallet
-// Last Update: February 3, 2023
+// Last Update: July 27, 2024
 ///////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -20,6 +20,7 @@
 
 "Select a 3D Model"="Sélectionner un modèle 3D";
 "3D Models"="Modèles 3D";
+"Source model units"="Unités du modèle source";
 "Select a Texture for Material:"="Sélectionner une texture pour le matériau :";
 "Images"="Images";
 "Model has"="Le modèle a";

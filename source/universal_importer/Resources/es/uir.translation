@@ -3,7 +3,7 @@
 // Universal Importer Plugin Spanish Translation
 //
 // Authors: Óscar Hernández, DeepL
-// Last Update: February 3, 2023
+// Last Update: July 27, 2024
 ////////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -20,6 +20,7 @@
 
 "Select a 3D Model"="Seleccionar un Modelo 3D";
 "3D Models"="Modelos 3D";
+"Source model units"="Unidades del modelo de origen";
 "Select a Texture for Material:"="Seleccionar una Textura para el Material:";
 "Images"="Imágenes";
 "Model has"="El modelo tiene";
