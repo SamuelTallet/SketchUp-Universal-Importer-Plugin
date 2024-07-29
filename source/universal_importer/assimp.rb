@@ -221,7 +221,8 @@ module UniversalImporter
 
     end
 
-    # Gets face count of a 3D model.
+    # Gets face count of a 3D model, thanks to log file output by Assimp.
+    # @see Assimp.get_texture_refs
     #
     # @param [String] working_dir
     # @param [String] log_filename

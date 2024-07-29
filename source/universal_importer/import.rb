@@ -33,8 +33,8 @@ module UniversalImporter
     # Supported texture image file extensions.
     SUPPORTED_TEXTURE_EXTS = ['jpg', 'png', 'bmp', 'tga', 'tif']
 
-    # CAD model file extensions (better) supported by Mayo Conv.
-    CAD_MODEL_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep']
+    # Model file extensions to import with the Mayo Converter CLI.
+    BEST_WITH_MAYO_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
 
     # Completion status, source filename, source units and materials names.
     #
@@ -105,47 +105,42 @@ module UniversalImporter
 
       specify_source_units
 
+      @inter_obj_file_path = File.join(@source_dir, 'uir-inter.obj')
       @inter_mtl_file_path = File.join(@source_dir, 'uir-inter.mtl')
+
       # Materials names indexed by texture path or color.
       @materials_names = {}
 
-      if CAD_MODEL_FILE_EXTS.include?(@source_file_ext)
-        # Import source file with Mayo:
+      if BEST_WITH_MAYO_FILE_EXTS.include?(@source_file_ext)
+        @source_importer = :mayo_conv
+        # Converts source model to intermediate OBJ/MTL files with Mayo.
+        MayoConv.export_model(@source_file_path, @inter_obj_file_path)
 
-        convert_cad_source_to_intermediate
-        backup_materials_names_for_later
-
-        # @todo handle polygon reduction.
-
-        convert_intermediate_to_final
-
-        # @fixme There are cases when up axis is wrong.
-        COLLADA.replace_up_axis(@final_dae_file_path, :Y, :Z)
-
+        # @fixme Orientation of component in model observer.
       else
-        # Import source file with Assimp:
-
+        @source_importer = :assimp_cmd
         create_link_to_source_file
-
         convert_source_link_to_intermediate
+
         fix_embedded_tex_in_inter_mtl
         fix_external_tex_in_inter_mtl
 
         ask_for_missing_tex_in_inter_mtl if @@options[:claim_missing_textures?]
-
-        # It's crucial to save the materials names now as MeshLab renames them.
-        backup_materials_names_for_later
-
-        if @@options[:propose_polygon_reduction?]
-          ask_for_polygon_reduction
-          apply_poly_reduction_to_inter_obj
-        end
-
-        convert_intermediate_to_final
-
       end
 
+      # It's crucial to save the materials names now as MeshLab renames them.
+      backup_materials_names_for_later
+
+      if @@options[:propose_polygon_reduction?]
+        ask_for_polygon_reduction
+        apply_poly_reduction_to_inter_obj
+      end
+
+      convert_intermediate_to_final
+
       COLLADA.fix_double_sided_faces(@final_dae_file_path)
+      # @fixme Incompatibility with (some) glTF models.
+
       Sketchup.active_model.import(@final_dae_file_path)
 
       # From now, SketchUp waits for user to place imported model as component.
@@ -205,15 +200,6 @@ module UniversalImporter
       if user_input.is_a?(Array)
         @source_units = user_input[0]
       end
-    end
-
-    # Converts CAD source model to intermediate OBJ/MTL files with Mayo.
-    def convert_cad_source_to_intermediate
-
-      MayoConv.export_model(
-        @source_file_path, File.join(@source_dir, 'uir-inter.obj')
-      )
-
     end
 
     # Creates a hard link to source model file.
@@ -380,7 +366,7 @@ module UniversalImporter
     # @see ModelObserver#onPlaceComponent
     # @see COLLADA.fix_materials_names
     def backup_materials_names_for_later
-      # Sometimes Mayo Conv doesn't output a MTL file.
+      # Possibly Mayo Conv doesn't output a MTL file.
       return unless File.exist?(@inter_mtl_file_path)
 
       intermediate_mtl = MTL.new(@inter_mtl_file_path)
@@ -410,7 +396,11 @@ module UniversalImporter
 
       @poly_reduction_params = nil
 
-      model_face_count = Assimp.get_face_count(@source_dir, 'uir-assimp.nfo')
+      if @source_importer == :assimp_cmd
+        model_face_count = Assimp.get_face_count(@source_dir, 'uir-assimp.nfo')
+      else # if mayo_conv
+        model_face_count = MayoConv.get_face_count(@inter_obj_file_path)
+      end
 
       poly_reduction_answer = UI.messagebox(
         TRANSLATE['Model has'] + ' ' + model_face_count.to_s +
@@ -435,10 +425,17 @@ module UniversalImporter
 
       return unless @poly_reduction_params.is_a?(Array)
 
-      inter_mtl = File.read(@inter_mtl_file_path)
+      has_diffuse_texture = false
+      if File.exist?(@inter_mtl_file_path)
+        inter_mtl = File.read(@inter_mtl_file_path)
+        if inter_mtl.include?('map_Kd')
+          has_diffuse_texture = true
+        end
+      end
+      # Possibly Mayo Conv doesn't output a MTL file.
 
       mlx = MeshLab.poly_reduction_script(
-        inter_mtl.include?('map_Kd'),
+        has_diffuse_texture,
         @poly_reduction_params[0].to_i
       )
       File.write(File.join(@source_dir, 'uir-poly_reduction.mlx'), mlx)

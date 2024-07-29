@@ -68,6 +68,23 @@ module UniversalImporter
       raise ('command failed: ' + command) unless true == status
     end
 
+    # Gets face count from a Wavefront OBJ file output by Mayo Conv.
+    #
+    # @param [String] obj_path Absolute path to the OBJ file.
+    # @raise [ArgumentError]
+    #
+    # @return [Integer, String] Face count found in the OBJ file, otherwise "n".
+    def self.get_face_count(obj_path)
+      raise ArgumentError, 'obj_path must be a string' \
+        unless obj_path.is_a?(String)
+
+      File.foreach(obj_path) do |line|
+        return $1.to_i if line =~ /^#\s+Faces:\s+(\d+)/
+      end
+
+      'n'
+    end
+    
   end
 
 end
