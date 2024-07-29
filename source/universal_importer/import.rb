@@ -36,10 +36,10 @@ module UniversalImporter
     # Model file extensions to import with the Mayo Converter CLI.
     BEST_WITH_MAYO_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
 
-    # Completion status, source filename, source units and materials names.
+    # Completion status, source filename/importer/units and materials names.
     #
     # @see ModelObserver#onPlaceComponent
-    attr_reader :completed, :source_filename, :source_units, :materials_names
+    attr_reader :completed, :source_filename, :source_importer, :source_units, :materials_names
 
     # Initializes options with default values.
     @@options = {
@@ -115,8 +115,6 @@ module UniversalImporter
         @source_importer = :mayo_conv
         # Converts source model to intermediate OBJ/MTL files with Mayo.
         MayoConv.export_model(@source_file_path, @inter_obj_file_path)
-
-        # @fixme Orientation of component in model observer.
       else
         @source_importer = :assimp_cmd
         create_link_to_source_file
