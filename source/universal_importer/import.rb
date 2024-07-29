@@ -176,6 +176,7 @@ module UniversalImporter
     end
 
     # Prompts user to specify source model units.
+    # @todo Provide a visual interface so the user can preview (and fix if needed) the scale of model to import.
     def specify_source_units
       prompts = [TRANSLATE['Source model units'] + ' ']
 
@@ -183,10 +184,9 @@ module UniversalImporter
       # @type [Symbol, String]
       @source_units = Units.guess_by(@source_file_ext)
 
-      # It is not always possible (unitless format, unknown specifications) or easy (exporters diversity)
-      # to automatically determine the units of the source model. We took the shortcut of making a blind
-      # guess from the source file extension. This default speeds up the workflow with a not-too-bad error
-      # rate, but sooner or later, a visual interface will be needed to better handle this scaling issue.
+      # It's not always possible (unitless format, model w/o annotations) or easy (exporters diversity) to
+      # automatically determine the units of the source model. We took the shortcut of making a blind guess
+      # from the source file extension. This default speeds up the workflow with a not-too-bad error rate.
       defaults = [@source_units]
 
       options = [Units::MILLIMETERS, Units::CENTIMETERS, Units::METERS, Units::INCHES, Units::FEET, Units::YARDS]
