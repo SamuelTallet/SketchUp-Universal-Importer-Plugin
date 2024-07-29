@@ -303,7 +303,7 @@ module UniversalImporter
             end
           end
 
-          # @todo if texture not found and "Claim missing textures" option is On, ask user.
+          # @todo If texture not found and "Claim missing textures" option is On, ask user.
 
           if !found_texture_path.nil?
             texture_link_path = File.join(@source_dir, "uir-#{texture_basename}")
