@@ -86,7 +86,7 @@ Enable "Claim Missing Textures" option in "Extensions > Universal Importer" menu
 
 ### On SketchUp 2017, imported model has bad texture mapping and/or face count after polygon reduction is unexpected.
 
-Do "File > Import", select "COLLADA files", click "Options", uncheck "Merge coplanar faces", click "OK", close dialog then re-import model with the plugin.
+Do "File > Import", select "COLLADA files (*.dae)", click "Options", uncheck "Merge coplanar faces", click "OK", close dialog then re-import model with the plugin.
 
 ### My problem isn't resolved or isn't listed above.
 
