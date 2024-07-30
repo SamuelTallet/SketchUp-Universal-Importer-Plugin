@@ -137,9 +137,22 @@ module UniversalImporter
       convert_intermediate_to_final
 
       COLLADA.fix_double_sided_faces(@final_dae_file_path)
-      # @fixme Incompatibility with (some) glTF models.
 
-      Sketchup.active_model.import(@final_dae_file_path)
+      if Sketchup.version.to_i >= 18
+        dae_importer_options = {
+          # This option available since SU 2018, when it's unchecked, prevents the conflict with
+          # the above "double sided faces" fix and avoids a bad texturing of the imported model.
+          :merge_coplanar_faces => false
+        }
+      else
+        # On SU 2027: the user must first uncheck the COLLADA "Merge coplanar faces" import option
+        # in native "File > Import" dialog, there's no way to access this option via the Ruby API.
+        dae_importer_options = false
+      end
+      # Unchecking this option will also allow to get the exact
+      # number of faces targeted following a polygon reduction.
+
+      Sketchup.active_model.import(@final_dae_file_path, dae_importer_options)
 
       # From now, SketchUp waits for user to place imported model as component.
       # @see ModelObserver#onPlaceComponent
