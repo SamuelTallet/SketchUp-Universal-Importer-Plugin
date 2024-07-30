@@ -21,7 +21,7 @@ raise 'Universal Importer plugin requires at least SketchUp 2017.'\
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  VERSION = '1.2.5'
+  VERSION = '1.2.6'
 
   # Load translation if it's available for current locale.
   TRANSLATE = LanguageHandler.new('uir.translation')
