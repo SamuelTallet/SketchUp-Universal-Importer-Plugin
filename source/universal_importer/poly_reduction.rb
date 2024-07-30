@@ -194,7 +194,16 @@ module UniversalImporter
     #
     # @return [Boolean]
     def convert_from_dae_to_skp
-      @model.import(@dae_import_file_path)
+      # This option avoids a bad texture mapping and an unexpected face count.
+      if Sketchup.version.to_i >= 18
+        dae_importer_options = {
+          :merge_coplanar_faces => false
+        }
+      else
+        dae_importer_options = false
+      end
+
+      @model.import(@dae_import_file_path, dae_importer_options)
     end
 
     # Last instance of PolyReduction class.
