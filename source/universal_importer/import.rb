@@ -19,6 +19,7 @@ require 'universal_importer/mayo_conv'
 require 'universal_importer/fs'
 require 'universal_importer/assimp'
 require 'universal_importer/mtl'
+require 'universal_importer/unzip'
 require 'universal_importer/meshlab'
 require 'universal_importer/collada'
 require 'universal_importer/donate'
@@ -36,10 +37,10 @@ module UniversalImporter
     # Model file extensions to import with the Mayo Converter CLI.
     BEST_WITH_MAYO_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
 
-    # Completion status, source filename/importer/units and materials names.
+    # Completion status, source filename, source file extension, source importer, source units and materials names.
     #
     # @see ModelObserver#onPlaceComponent
-    attr_reader :completed, :source_filename, :source_importer, :source_units, :materials_names
+    attr_reader :completed, :source_filename, :source_file_ext, :source_importer, :source_units, :materials_names
 
     # Initializes options with default values.
     @@options = {
@@ -95,12 +96,20 @@ module UniversalImporter
       select_source_file
       return unless @source_file_path.is_a?(String)
 
+      # Directory of the source model. It's an absolute path.
       @source_dir = File.dirname(@source_file_path)
 
-      # Deletes temporary files possibly left in source directory by a previous import fail.
+      # A temporary directory where the textures, embedded in the source model, are extracted.
+      # It's an absolute path and a subfolder ("uir-textures") of the directory of the source model.
+      @temp_textures_dir = File.join(@source_dir, 'uir-textures')
+
+      # Deletes the temporary files possibly left in the source directory by a previous import fail.
       delete_temp_files
 
+      # Filename of the source model. Example: Spider-Man.fbx
       @source_filename = File.basename(@source_file_path)
+
+      # File extension of the source model, lowercase, without dot. Example: fbx
       @source_file_ext = File.extname(@source_filename).delete('.').downcase
 
       specify_source_units
@@ -120,7 +129,12 @@ module UniversalImporter
         create_link_to_source_file
         convert_source_link_to_intermediate
 
-        fix_embedded_tex_in_inter_mtl
+        if '3mf' == @source_file_ext
+          fix_3mf_embedded_tex_in_inter_mtl
+        else
+          fix_embedded_tex_in_inter_mtl
+        end
+
         fix_external_tex_in_inter_mtl
 
         ask_for_missing_tex_in_inter_mtl if @@options[:claim_missing_textures?]
@@ -234,6 +248,54 @@ module UniversalImporter
       inter_mtl.gsub!("\nd ", "\n# d ")
       File.write(@inter_mtl_file_path, inter_mtl)
 
+    end
+
+    # Fixes, in the intermediate MTL file, the filename of each texture embedded in the 3MF model.
+    # This method exists because Assimp lists 3MF embedded textures differently than other formats.
+    def fix_3mf_embedded_tex_in_inter_mtl
+      # The embedded textures have been already extracted?
+      textures_extracted = false
+      intermediate_mtl = MTL.new(@inter_mtl_file_path)
+
+      # For each material in the intermediate MTL file:
+      intermediate_mtl.materials.each_value { |material|
+
+        # If the current diffuse texture path is a reference
+        # to a texture embedded in the 3MF file: e.g. */3D/Texture/755688691_2048x2048.png
+        if material[:diffuse_texture] && material[:diffuse_texture] =~ /\*\/(.+)/
+          texture_reference_path = $1
+
+          unless textures_extracted
+            # Extracts once, to the disk, the textures embedded in the 3MF file.
+            UnZip.extract(
+              @source_file_path, # A 3MF file is a ZIP file.
+              @temp_textures_dir,
+              [
+                '*.jpg', '*.jpeg', '*.png'
+              ], # 3MF supports only JPEG and PNG textures.
+              ignore_errors=[
+                11 # "caution: filename not matched"
+              ] # Since it's alright to not have both JPEG and PNG textures in the same 3MF file.
+            )
+            textures_extracted = true
+          end
+
+          if File.exist?(File.join(@temp_textures_dir, texture_reference_path))
+            # Replaces the embedded texture reference with the matching extracted texture filename.
+            material[:diffuse_texture] = 'uir-textures/' + texture_reference_path
+          else
+            # Marks the texture as "missing" to give it a chance to be fixed manually by the user.
+            # @see Import#ask_for_missing_tex_in_inter_mtl
+            material[:diffuse_texture] = nil
+          end
+        end
+
+      }
+
+      if textures_extracted
+        # In this case, an update of the intermediate MTL file is required.
+        File.write(@inter_mtl_file_path, intermediate_mtl.to_s)
+      end
     end
 
     # Fixes, in intermediate MTL file, filename of each texture embedded in model.
@@ -501,10 +563,12 @@ module UniversalImporter
       @@last = instance
     end
 
-    # Deletes temporary files (prefixed with "uir-").
+    # Deletes temporary textures directory ("uir-textures") and temporary files (prefixed with "uir-").
     #
     # @see ModelObserver#onPlaceComponent
     def delete_temp_files
+
+      FileUtils.remove_dir(@temp_textures_dir) if Dir.exist?(@temp_textures_dir)
 
       temp_files_pattern = @source_dir
 

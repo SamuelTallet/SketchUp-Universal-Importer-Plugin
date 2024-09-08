@@ -36,7 +36,7 @@ module UniversalImporter
         # @todo Provide a visual interface so the user can preview
         # (and fix if needed) the orientation of model to import.
         Orientation.rotate(component, X_AXIS, -90.degrees) \
-          if Import.last.source_importer == :mayo_conv
+          if Import.last.source_importer == :mayo_conv || Import.last.source_file_ext == '3mf'
 
         # We are forced to change the units once the component is placed into the SU model due to a bug.
         # @see https://forums.sketchup.com/t/importing-mesh-from-file-ignoring-small-faces/23094/3
