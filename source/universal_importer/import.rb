@@ -97,7 +97,7 @@ module UniversalImporter
       return unless @source_file_path.is_a?(String)
 
       # Directory of the source model. It's an absolute path.
-      @source_dir = File.dirname(@source_file_path)
+      @source_dir = File.dirname(@source_file_path) + File::SEPARATOR
 
       # A temporary directory where the textures, embedded in the source model, are extracted.
       # It's an absolute path and a subfolder ("uir-textures") of the directory of the source model.
