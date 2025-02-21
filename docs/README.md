@@ -88,6 +88,10 @@ Enable "Claim Missing Textures" option in "Extensions > Universal Importer" menu
 
 Do "File > Import", select "COLLADA files (*.dae)", click "Options", uncheck "Merge coplanar faces", click "OK", close dialog then re-import model with the plugin.
 
+### When I reduce the polygon count of a mesh exported from CloudCompare, the plugin only imports one line.
+
+Go back to CloudCompare, deselect "Preserve global shift on save", export again the mesh, then import it again with Universal Importer.
+
 ### My problem isn't resolved or isn't listed above.
 
 Report a bug on official [Universal Importer forum thread](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951) at SketchUcation or here at GitHub on [Issues](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) page.
