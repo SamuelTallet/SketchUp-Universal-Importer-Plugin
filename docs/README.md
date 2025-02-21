@@ -88,7 +88,7 @@ Enable "Claim Missing Textures" option in "Extensions > Universal Importer" menu
 
 Do "File > Import", select "COLLADA files (*.dae)", click "Options", uncheck "Merge coplanar faces", click "OK", close dialog then re-import model with the plugin.
 
-### When I reduce the polygon count of a mesh exported from CloudCompare, the plugin only imports one line.
+### When I reduce the polygon count of a mesh exported from CloudCompare, the plugin only imports one line. Without reduction, imported model is invisible.
 
 Go back to CloudCompare, deselect "Preserve global shift on save", export again the mesh, then import it again with Universal Importer.
 
