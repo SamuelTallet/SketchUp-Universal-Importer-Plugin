@@ -1,0 +1,48 @@
+name: Build Assimp CLI
+
+on:
+  workflow_dispatch: # On demand.
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            os_and_arch: windows-x64
+          - os: macos-latest
+            os_and_arch: macos-universal2
+
+    steps:
+    - name: Get Current Date
+      id: date
+      uses: Kaven-Universe/github-action-current-date-time@v1
+      with:
+        format: YYYY-MM-DD
+
+    - name: Clone Assimp
+      uses: actions/checkout@v4
+      with:
+        repository: assimp/assimp
+        ref: master
+        submodules: true
+
+    - name: Configure Build
+      if: matrix.os == 'windows-latest'
+      run: cmake -S . -B ./build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF
+
+    - name: Configure Build
+      if: matrix.os == 'macos-latest'
+      run: cmake -S . -B ./build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF
+
+    - name: Build Release
+      run: cmake --build ./build --config Release
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: assimp-cli-${{ steps.date.outputs.time }}-${{ matrix.os_and_arch }}
+        path: build/bin/
+        retention-days: 7
