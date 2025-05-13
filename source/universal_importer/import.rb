@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2025 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -37,10 +37,17 @@ module UniversalImporter
     # Model file extensions to import with the Mayo Converter CLI.
     BEST_WITH_MAYO_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
 
-    # Completion status, source filename, source file extension, source importer, source units and materials names.
+    # Processing status.
+    # Source filename, file extension, importer and units.
+    # Materials names.
     #
     # @see ModelObserver#onPlaceComponent
-    attr_reader :completed, :source_filename, :source_file_ext, :source_importer, :source_units, :materials_names
+    attr_reader :processed, :source_filename, :source_file_ext, :source_importer, :source_units, :materials_names
+
+    # Completion status.
+    #
+    # @see ModelObserver#onPlaceComponent
+    attr_accessor :completed
 
     # Initializes options with default values.
     @@options = {
@@ -91,7 +98,7 @@ module UniversalImporter
 
       Donate.invite_user
 
-      @completed = false
+      @completed = @processed = false
 
       select_source_file
       return unless @source_file_path.is_a?(String)
@@ -171,8 +178,8 @@ module UniversalImporter
       # From now, SketchUp waits for user to place imported model as component.
       # @see ModelObserver#onPlaceComponent
 
-      # Import complete.
-      @completed = true
+      # Import processed but not completed yet.
+      @processed = true
 
       Imports.increment_counter
 

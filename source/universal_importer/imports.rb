@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2025 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -17,7 +17,7 @@ require 'sketchup'
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # Things shared by imports, such as count of completed imports.
+  # Things shared by imports, such as count of processed imports.
   module Imports
 
     # Absolute path to "imports.count" file.
