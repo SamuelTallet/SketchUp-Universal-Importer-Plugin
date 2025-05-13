@@ -1,0 +1,7 @@
+# Marks this as the root .editorconfig file to stop searching parent directories.
+root = true
+
+[*]
+indent_style = space
+# We use two spaces for indentation as it is a common convention in Ruby projects.
+indent_size = 2
