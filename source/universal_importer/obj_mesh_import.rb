@@ -13,12 +13,17 @@
 # Get a copy of the GPL here: https://www.gnu.org/licenses/gpl.html
 
 require 'sketchup'
+require 'universal_importer/mtl'
 
 # Universal Importer plugin namespace.
 module UniversalImporter
 
-  # Imports an OBJ file as a mesh into SketchUp.
+  # Imports an OBJ file as a mesh into SketchUp, colored with the diffuse colors
+  # of its companion MTL file, if any.
   class ObjMeshImport
+
+    # Smoothing flags applied to the faces created from a polygon mesh.
+    SMOOTH_FLAGS = Geom::PolygonMesh::AUTO_SOFTEN | Geom::PolygonMesh::SMOOTH_SOFT_EDGES
 
     # Initializes an OBJ mesh importer.
     #
@@ -31,10 +36,11 @@ module UniversalImporter
       @operation_name = operation_name
 
       @vertices = []
-      @faces = []
       @groups = {}
       @current_group_path = nil
       @group_name_counts = {} # Used to ensure unique group names.
+      @materials = {} # SketchUp materials indexed by OBJ material name.
+      @current_material_name = nil
     end
 
     # Imports the OBJ file.
@@ -74,22 +80,28 @@ module UniversalImporter
         # Normalizes whitespace in each line to make further processing reliable.
         line = line.gsub(/\t/, ' ').gsub(/\s+/, ' ').strip
 
-        # Parses only relevant lines. The first char indicates the type of data:
-        # v = vertex, f = face, g = group.
-        if line =~ /^(v|f|g)\s[^\s]+/
-          identifier, *data = line.split(' ')
-          
-          case identifier
-          when 'v'
-            # Example: "v 1.0 2.0 3.0"
-            process_vertex(data)
-          when 'f'
-            # Example: "f 1/1/1 2/2/2 3/3/3"
-            process_face(data)
-          when 'g'
-            # Example: "g Parent Group/Child Group"
-            process_group_name(data.join(' '))
-          end
+        # Parses only relevant lines. The first word indicates the type of data: v = vertex,
+        # f = face, g = group, mtllib = material library, usemtl = material to apply.
+        next unless line =~ /^(v|f|g|mtllib|usemtl)\s[^\s]+/
+
+        identifier, *data = line.split(' ')
+
+        case identifier
+        when 'v'
+          # Example: "v 1.0 2.0 3.0"
+          process_vertex(data)
+        when 'f'
+          # Example: "f 1/1/1 2/2/2 3/3/3"
+          process_face(data)
+        when 'g'
+          # Example: "g Parent Group/Child Group"
+          process_group_name(data.join(' '))
+        when 'mtllib'
+          # Example: "mtllib model.mtl"
+          load_materials(data.join(' '))
+        when 'usemtl'
+          # Example: "usemtl mat_1"
+          @current_material_name = data.join(' ')
         end
 
       end
@@ -107,10 +119,8 @@ module UniversalImporter
       # OBJ is unitless, so we convert the vertex data to meters.
       vertex_data.map! { |v| v.to_f.m }
 
-      # Adds the vertex to the vertices array and to the current group, if applicable.
-      vertex = Geom::Point3d.new(*vertex_data)
-      @vertices << vertex
-      add_vertex_to_current_group(vertex) if @current_group_path
+      # Adds the vertex to the vertices array.
+      @vertices << Geom::Point3d.new(*vertex_data)
     end
 
     # Processes the face data.
@@ -122,13 +132,33 @@ module UniversalImporter
         return
       end
 
-      # Adds the faces to the faces array and to the current group, if applicable.
+      # Adds the face to the current group, if applicable.
       # The face data is in the format "vertex_index/texture_index/normal_index".
       # Vertex index is mandatory, while texture and normal indexes are optional.
       # OBJ uses 1-based indexes, so we subtract 1 to convert to 0-based indexes.
       face = face_data.map { |f| @vertices[f.split('/')[0].to_i - 1] }
-      @faces << face
       add_face_to_current_group(face) if @current_group_path
+    end
+
+    # Loads, as SketchUp materials, the colors defined in a MTL file.
+    # @param [String] mtl_filename Filename of the MTL file, relative to the OBJ file.
+    def load_materials(mtl_filename)
+      mtl_file_path = File.join(File.dirname(@file_path), mtl_filename)
+
+      unless File.exist?(mtl_file_path)
+        warn "Materials ignored due to missing MTL file (#{mtl_filename})."
+        return
+      end
+
+      MTL.new(mtl_file_path).materials.each do |material_name, material_properties|
+        diffuse_color = material_properties[:diffuse_color]
+        next unless diffuse_color
+
+        material = Sketchup.active_model.materials.add(material_name)
+        # MTL colors are floats between 0 and 1, SketchUp colors are integers between 0 and 255.
+        material.color = Sketchup::Color.new(*diffuse_color.map { |value| (value * 255).round })
+        @materials[material_name] = material
+      end
     end
 
     # Processes the group name.
@@ -168,25 +198,21 @@ module UniversalImporter
     # @param [Array<String>] path The path to the group.
     def create_group_hierarchy(groups, path)
       if path.size == 1
-        groups[path[0]] ||= { vertices: [], faces: [] }
+        # Faces of a group are indexed by material name, as a mesh has only one material.
+        groups[path[0]] ||= { faces: {} }
       else
         groups[path[0]] ||= {}
         create_group_hierarchy(groups[path[0]], path[1..-1])
       end
     end
 
-    # Adds a vertex to the current group in the hierarchy.
-    # @param [Geom::Point3d] vertex The vertex to add.
-    def add_vertex_to_current_group(vertex)
-      group = find_group_in_hierarchy(@groups, @current_group_path)
-      group[:vertices].push(vertex) if group
-    end
-
-    # Adds a face to the current group in the hierarchy.
+    # Adds a face, with its current material, to the current group in the hierarchy.
     # @param [Array<Geom::Point3d>] face The face to add.
     def add_face_to_current_group(face)
       group = find_group_in_hierarchy(@groups, @current_group_path)
-      group[:faces].push(face) if group
+      return unless group
+
+      (group[:faces][@current_material_name] ||= []).push(face)
     end
 
     # Finds a group specified by the path in the hierarchy.
@@ -206,15 +232,17 @@ module UniversalImporter
         group = parent_entities.add_group
         group.name = name
 
-        if data.is_a?(Hash) && data.key?(:vertices) && data.key?(:faces)
-          # Creates a polygon mesh from the vertices and faces.
-          pm = Geom::PolygonMesh.new
-          data[:vertices].each { |vertex| pm.add_point(vertex) }
-          data[:faces].each { |face| pm.add_polygon(face) }
+        if data.key?(:faces)
+          # Creates a polygon mesh, then faces, per material.
+          data[:faces].each do |material_name, faces|
+            pm = Geom::PolygonMesh.new
+            faces.each { |face| pm.add_polygon(face) }
 
-          # Adds the mesh to the group.
-          group.entities.add_faces_from_mesh(pm)
-        elsif data.is_a?(Hash)
+            material = @materials[material_name]
+            # The material is applied on both sides to color faces whatever their orientation.
+            group.entities.add_faces_from_mesh(pm, SMOOTH_FLAGS, material, material)
+          end
+        else
           # Recursively creates child groups.
           create_sketchup_groups_recursive(group.entities, data)
         end
