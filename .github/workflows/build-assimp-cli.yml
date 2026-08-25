@@ -17,13 +17,12 @@ jobs:
 
     steps:
     - name: Get Current Date
-      id: date
-      uses: Kaven-Universe/github-action-current-date-time@v1
-      with:
-        format: YYYY-MM-DD
+      id: now
+      run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      shell: bash
 
     - name: Clone Assimp
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: assimp/assimp
         ref: master
@@ -41,8 +40,8 @@ jobs:
       run: cmake --build ./build --config Release
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
-        name: assimp-cli-${{ steps.date.outputs.time }}-${{ matrix.os_and_arch }}
+        name: assimp-cli-${{ steps.now.outputs.date }}-${{ matrix.os_and_arch }}
         path: build/bin/
         retention-days: 7
