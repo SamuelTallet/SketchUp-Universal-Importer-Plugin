@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2025 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2026 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -22,6 +22,7 @@ require 'universal_importer/mtl'
 require 'universal_importer/unzip'
 require 'universal_importer/meshlab'
 require 'universal_importer/collada'
+require 'universal_importer/obj_mesh_import'
 require 'universal_importer/donate'
 require 'universal_importer/imports'
 
@@ -32,10 +33,13 @@ module UniversalImporter
   class Import
 
     # Supported texture image file extensions.
-    SUPPORTED_TEXTURE_EXTS = ['jpg', 'png', 'bmp', 'tga', 'tif']
+    SUPPORTED_TEXTURES = ['jpg', 'png', 'bmp', 'tga', 'tif']
 
     # Model file extensions to import with the Mayo Converter CLI.
-    BEST_WITH_MAYO_FILE_EXTS = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
+    WITH_MAYO = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
+
+    # CAD model file extensions whose parts are exported separately by Mayo.
+    CAD_PARTS_EXPORTED = WITH_MAYO - ['brep', 'stl']
 
     # Processing status.
     # Source filename, file extension, importer and units.
@@ -52,7 +56,8 @@ module UniversalImporter
     # Initializes options with default values.
     @@options = {
       :propose_polygon_reduction? => true,
-      :claim_missing_textures? => false
+      :claim_missing_textures? => false,
+      :preserve_cad_hierarchy? => true
     }
 
     # Sets "Propose polygon reduction" option.
@@ -93,6 +98,25 @@ module UniversalImporter
       @@options[:claim_missing_textures?]
     end
 
+    # Sets "Preserve CAD hierarchy" option.
+    #
+    # @param [Boolean] yes_or_no
+    #
+    # @raise [ArgumentError]
+    def self.preserve_cad_hierarchy=(yes_or_no)
+      raise ArgumentError, 'Yes or No must be a Boolean'\
+        unless yes_or_no == true || yes_or_no == false
+
+      @@options[:preserve_cad_hierarchy?] = yes_or_no
+    end
+
+    # Gets "Preserve CAD hierarchy" option.
+    #
+    # @return [Boolean]
+    def self.preserve_cad_hierarchy?
+      @@options[:preserve_cad_hierarchy?]
+    end
+
     # Imports a model.
     def initialize()
 
@@ -127,7 +151,7 @@ module UniversalImporter
       # Materials names indexed by texture path or color.
       @materials_names = {}
 
-      if BEST_WITH_MAYO_FILE_EXTS.include?(@source_file_ext)
+      if WITH_MAYO.include?(@source_file_ext)
         @source_importer = :mayo_conv
         # Converts source model to intermediate OBJ/MTL files with Mayo.
         MayoConv.export_model(@source_file_path, @inter_obj_file_path)
@@ -147,39 +171,25 @@ module UniversalImporter
         ask_for_missing_tex_in_inter_mtl if @@options[:claim_missing_textures?]
       end
 
-      # It's crucial to save the materials names now as MeshLab renames them.
-      backup_materials_names_for_later
+      # Whether the hierarchy of the source CAD model will be preserved.
+      preserve_cad_hierarchy = false
 
-      if @@options[:propose_polygon_reduction?]
-        ask_for_polygon_reduction
-        apply_poly_reduction_to_inter_obj
+      if @@options[:preserve_cad_hierarchy?]
+        if CAD_PARTS_EXPORTED.include?(@source_file_ext)
+          preserve_cad_hierarchy = true
+        else
+          warn "Hierarchy can't be preserved"
+        end
       end
 
-      convert_intermediate_to_final
-
-      COLLADA.fix_double_sided_faces(@final_dae_file_path)
-
-      if Sketchup.version.to_i >= 18
-        dae_importer_options = {
-          # This option available since SU 2018, when it's unchecked, prevents the conflict with
-          # the above "double sided faces" fix and avoids a bad texturing of the imported model.
-          :merge_coplanar_faces => false
-        }
+      if preserve_cad_hierarchy
+        if @@options[:propose_polygon_reduction?]
+          warn 'Polygon reduction is unavailable'
+        end
+        import_inter_cad_as_nested
       else
-        # On SU 2027: the user must first uncheck the COLLADA "Merge coplanar faces" import option
-        # in native "File > Import" dialog, there's no way to access this option via the Ruby API.
-        dae_importer_options = false
+        import_intermediate_as_flat
       end
-      # Unchecking this option will also allow to get the exact
-      # number of faces targeted following a polygon reduction.
-
-      Sketchup.active_model.import(@final_dae_file_path, dae_importer_options)
-
-      # From now, SketchUp waits for user to place imported model as component.
-      # @see ModelObserver#onPlaceComponent
-
-      # Import processed but not completed yet.
-      @processed = true
 
       Imports.increment_counter
 
@@ -329,7 +339,7 @@ module UniversalImporter
           texture_absolute_path = File.join(@source_dir, texture_relative_path)
 
           # but we don't know the file extension of the extracted texture, so we try each:
-          SUPPORTED_TEXTURE_EXTS.each do |texture_extension|
+          SUPPORTED_TEXTURES.each do |texture_extension|
 
             if File.exist?(texture_absolute_path + '.' + texture_extension)
               # Replaces embedded diffuse texture reference with matching texture filename.
@@ -543,6 +553,65 @@ module UniversalImporter
 
       Assimp.convert_model(@source_dir, 'uir-inter.obj', 'uir-final.dae', 'uir-assimp.log')
       @final_dae_file_path = File.join(@source_dir, 'uir-final.dae')
+
+    end
+
+    # Imports the intermediate OBJ file as a flat component, via the COLLADA format.
+    #
+    # SketchUp then waits for the user to place the imported model as a component.
+    # @see ModelObserver#onPlaceComponent
+    def import_intermediate_as_flat
+
+      # It's crucial to save the materials names now as MeshLab renames them.
+      backup_materials_names_for_later
+
+      if @@options[:propose_polygon_reduction?]
+        ask_for_polygon_reduction
+        apply_poly_reduction_to_inter_obj
+      end
+
+      convert_intermediate_to_final
+
+      COLLADA.fix_double_sided_faces(@final_dae_file_path)
+
+      if Sketchup.version.to_i >= 18
+        dae_importer_options = {
+          # This option available since SU 2018, when it's unchecked, prevents the conflict with
+          # the above "double sided faces" fix and avoids a bad texturing of the imported model.
+          :merge_coplanar_faces => false
+        }
+      else
+        # On SU 2017: the user must first uncheck the COLLADA "Merge coplanar faces" import option
+        # in native "File > Import" dialog, there's no way to access this option via the Ruby API.
+        dae_importer_options = false
+      end
+      # Unchecking this option will also allow to get the exact
+      # number of faces targeted following a polygon reduction.
+
+      Sketchup.active_model.import(@final_dae_file_path, dae_importer_options)
+
+      # Import processed but not completed yet (waiting for user placement).
+      @processed = true
+
+    end
+
+    # Imports the intermediate OBJ file as a component that contains nested groups,
+    # preserving the CAD hierarchy.
+    #
+    # The resulting component is automatically placed at origin.
+    def import_inter_cad_as_nested
+
+      component = ObjMeshImport.new(@inter_obj_file_path, @source_filename).import
+
+      delete_temp_files
+
+      # ObjMeshImport reads the unitless OBJ coordinates as meters, so a model
+      # authored in any other unit comes in at the wrong scale and must be resized.
+      Units.change(component, @source_units.to_sym) \
+        if @source_units.to_sym != Units::METERS
+
+      # Import processed and completed at once (no user placement to wait for).
+      @completed = @processed = true
 
     end
 

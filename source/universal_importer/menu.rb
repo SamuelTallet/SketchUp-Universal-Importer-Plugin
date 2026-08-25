@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2023 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2026 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -37,6 +37,8 @@ module UniversalImporter
         Import.last = Import.new
       end
 
+      plugin_menu.add_separator
+
       ppr_menu_item = plugin_menu.add_item(TRANSLATE['Propose Polygon Reduction']) do
         Import.propose_polygon_reduction = !Import.propose_polygon_reduction?
       end
@@ -52,6 +54,16 @@ module UniversalImporter
       plugin_menu.set_validation_proc(cmt_menu_item) do
         Import.claim_missing_textures? ? MF_CHECKED : MF_UNCHECKED
       end
+
+      pch_menu_item = plugin_menu.add_item(TRANSLATE['Preserve CAD Hierarchy']) do
+        Import.preserve_cad_hierarchy = !Import.preserve_cad_hierarchy?
+      end
+
+      plugin_menu.set_validation_proc(pch_menu_item) do
+        Import.preserve_cad_hierarchy? ? MF_CHECKED : MF_UNCHECKED
+      end
+
+      plugin_menu.add_separator
 
       plugin_menu.add_item(TRANSLATE['Get Help or Report a Bug']) do
         UI.openURL('https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin#troubleshooting')
