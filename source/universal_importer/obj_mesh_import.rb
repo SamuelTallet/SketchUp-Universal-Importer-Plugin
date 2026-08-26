@@ -25,6 +25,10 @@ module UniversalImporter
     # Smoothing flags applied to the faces created from a polygon mesh.
     SMOOTH_FLAGS = Geom::PolygonMesh::AUTO_SOFTEN | Geom::PolygonMesh::SMOOTH_SOFT_EDGES
 
+    # Maximum number of bodies a lone group is split into. Above that count, the mesh is a
+    # tessellated model rather than a multi-body part.
+    MAX_BODIES = 100
+
     # Initializes an OBJ mesh importer.
     #
     # @param [String] file_path Absolute path to the OBJ file to import.
@@ -57,6 +61,7 @@ module UniversalImporter
         # Processes the OBJ file and creates SketchUp groups based on the OBJ data.
         # These groups are added to the component definition.
         File.open(@file_path, 'r') { |file| process_file(file) }
+        split_lone_group_into_bodies
         create_sketchup_groups_recursive(component_def.entities, @groups)
 
         # Adds an instance of the component definition to the model, at the origin.
@@ -223,14 +228,109 @@ module UniversalImporter
       path.reduce(groups) { |current, name| current.is_a?(Hash) ? current[name] : nil }
     end
 
+    # Splits the lone group of the hierarchy into one sub-group per body.
+    #
+    # A CAD model without any assembly structure, such as a multi-body part, is exported by
+    # Mayo Conv as a lone OBJ group. Its bodies being disjoint meshes, they can be told apart.
+    def split_lone_group_into_bodies
+      return unless @groups.size == 1
+
+      group_name, group_data = @groups.first
+      # A group holding other groups is a hierarchy level, not a mesh.
+      return unless group_data.key?(:faces)
+
+      faces_per_body = split_faces_into_bodies(group_data[:faces])
+      # Keeps the group as it is when its mesh is made of a single connected piece.
+      return if faces_per_body.size < 2
+
+      if faces_per_body.size > MAX_BODIES
+        warn "Bodies not grouped: #{faces_per_body.size} of them, more than the #{MAX_BODIES} allowed"
+        return
+      end
+
+      # The bodies are left unnamed: their CAD names are lost on export. They are keyed by index.
+      sub_groups = {}
+      faces_per_body.each_with_index do |body_faces, body_index|
+        sub_groups[body_index] = { faces: body_faces }
+      end
+
+      @groups[group_name] = sub_groups
+    end
+
+    # Splits faces into connected components: the bodies of the mesh.
+    #
+    # @param [Hash] faces_by_material The faces of a group, indexed by material name.
+    #
+    # @return [Array<Hash>] The faces of each body, indexed by material name.
+    def split_faces_into_bodies(faces_by_material)
+      # Canonical vertex index of each position. Mayo Conv duplicates the vertices shared by two
+      # faces of a same CAD solid, with the very same decimals: comparing exactly is enough.
+      indexes_by_position = {}
+      # Union-Find parent of each canonical vertex index.
+      parents = []
+      # Each face, with its material name and its canonical vertex indexes.
+      indexed_faces = []
+
+      faces_by_material.each do |material_name, faces|
+        faces.each do |face|
+
+          vertex_indexes = face.map do |point|
+            position = point.to_a.map { |coordinate| coordinate.to_f }
+
+            indexes_by_position[position] ||= begin
+              parents.push(parents.size)
+              parents.size - 1
+            end
+          end
+
+          # Two faces sharing at least one vertex belong to the same body.
+          vertex_indexes.drop(1).each { |vertex_index| unite(parents, vertex_indexes[0], vertex_index) }
+
+          indexed_faces.push([material_name, face, vertex_indexes])
+
+        end
+      end
+
+      faces_by_body = {}
+      indexed_faces.each do |material_name, face, vertex_indexes|
+        body = (faces_by_body[find_root(parents, vertex_indexes[0])] ||= {})
+        (body[material_name] ||= []).push(face)
+      end
+
+      faces_by_body.values
+    end
+
+    # Finds the root of a vertex in the Union-Find structure, compressing the path leading to it.
+    #
+    # @return [Integer] The root of the vertex: the identifier of the body it belongs to.
+    def find_root(parents, vertex_index)
+      root = vertex_index
+      root = parents[root] while parents[root] != root
+
+      # Path compression: hooks each visited vertex directly to the root.
+      while parents[vertex_index] != root
+        parents[vertex_index], vertex_index = root, parents[vertex_index]
+      end
+
+      root
+    end
+
+    # Unites, in the Union-Find structure, the bodies two vertices belong to.
+    def unite(parents, first_vertex_index, second_vertex_index)
+      first_root = find_root(parents, first_vertex_index)
+      second_root = find_root(parents, second_vertex_index)
+
+      parents[first_root] = second_root if first_root != second_root
+    end
+
     # Recursively creates SketchUp groups based on the hierarchy.
     # @param [Sketchup::Entities] parent_entities The parent entities to add the groups to.
     # @param [Hash] groups The groups data.
     def create_sketchup_groups_recursive(parent_entities, groups)
       groups.each do |name, data|
-        # Creates a new group and sets its name.
         group = parent_entities.add_group
-        group.name = name
+        # An unnamed body is keyed by its index, so only a String is a name to set.
+        group.name = name if name.is_a?(String)
 
         if data.key?(:faces)
           # Creates a polygon mesh, then faces, per material.
