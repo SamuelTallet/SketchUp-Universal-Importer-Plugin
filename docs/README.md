@@ -10,22 +10,23 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - AC
 - AC3D
 - ACC
-- AMJ
+- AMF
 - ASE
 - ASK
 - B3D
 - BLEND
 - BREP
+- BSP
 - BVH
-- CSM
 - COB
+- CSM
 - DAE / Collada
 - DXF
 - ENFF
 - FBX
 - glTF 1.0 + GLB
 - glTF 2.0 + GLB
-- HMB
+- HMP
 - IFC-STEP
 - IGES 5.3
 - IQM
@@ -33,7 +34,6 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - LWO
 - LWS
 - LXO
-- M3D
 - MD2
 - MD3
 - MD5
@@ -47,6 +47,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - OBJ
 - OFF
 - OGEX
+- PK3
 - PLY
 - PMX
 - PRJ
@@ -60,6 +61,7 @@ Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on
 - STL
 - TER
 - UC
+- VRM
 - VTA
 - X
 - X3D
