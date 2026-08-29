@@ -3,7 +3,7 @@
 // Universal Importer Plugin Spanish Translation
 //
 // Authors: Óscar Hernández, DeepL
-// Last Update: August 24, 2026
+// Last Update: August 29, 2026
 ////////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -34,6 +34,10 @@
 
 "Import Component"="Importar Componente";
 
+// File: smoothing.rb
+
+"Smooth Component"="Alisar Componente";
+
 // File: menu.rb
 
 "Import with"="Importar con";
@@ -41,6 +45,7 @@
 "Propose Polygon Reduction"="Proponer la Reducción de Polígonos";
 "Claim Missing Textures"="Reclamar las Texturas que Faltan";
 "Preserve CAD Hierarchy"="Conservar la Jerarquía CAD";
+"Soften and Smooth Edges"="Suavizar y Alisar las Aristas";
 "Get Help or Report a Bug"="Obtener Ayuda o Informar de un Error";
 "Donate to Plugin Author"="Donar al Autor del Extensión";
 "Plugins of Same Author"="Extensións del Mismo Autor";

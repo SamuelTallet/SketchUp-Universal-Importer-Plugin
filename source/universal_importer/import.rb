@@ -57,7 +57,8 @@ module UniversalImporter
     @@options = {
       :propose_polygon_reduction? => true,
       :claim_missing_textures? => false,
-      :preserve_cad_hierarchy? => true
+      :preserve_cad_hierarchy? => true,
+      :soften_and_smooth_edges? => true
     }
 
     # Sets "Propose polygon reduction" option.
@@ -115,6 +116,25 @@ module UniversalImporter
     # @return [Boolean]
     def self.preserve_cad_hierarchy?
       @@options[:preserve_cad_hierarchy?]
+    end
+
+    # Sets "Soften and smooth edges" option.
+    #
+    # @param [Boolean] yes_or_no
+    #
+    # @raise [ArgumentError]
+    def self.soften_and_smooth_edges=(yes_or_no)
+      raise ArgumentError, 'Yes or No must be a Boolean'\
+        unless yes_or_no == true || yes_or_no == false
+
+      @@options[:soften_and_smooth_edges?] = yes_or_no
+    end
+
+    # Gets "Soften and smooth edges" option.
+    #
+    # @return [Boolean]
+    def self.soften_and_smooth_edges?
+      @@options[:soften_and_smooth_edges?]
     end
 
     # Imports a model.
@@ -601,7 +621,13 @@ module UniversalImporter
     # The resulting component is automatically placed at origin.
     def import_inter_cad_as_nested
 
-      component = ObjMeshImport.new(@inter_obj_file_path, @source_filename).import
+      if @@options[:soften_and_smooth_edges?]
+        smooth_flags = Geom::PolygonMesh::AUTO_SOFTEN | Geom::PolygonMesh::SMOOTH_SOFT_EDGES
+      else
+        smooth_flags = Geom::PolygonMesh::NO_SMOOTH_OR_HIDE
+      end
+
+      component = ObjMeshImport.new(@inter_obj_file_path, smooth_flags, @source_filename).import
 
       delete_temp_files
 

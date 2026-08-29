@@ -22,9 +22,6 @@ module UniversalImporter
   # of its companion MTL file, if any.
   class ObjMeshImport
 
-    # Smoothing flags applied to the faces created from a polygon mesh.
-    SMOOTH_FLAGS = Geom::PolygonMesh::AUTO_SOFTEN | Geom::PolygonMesh::SMOOTH_SOFT_EDGES
-
     # Maximum number of bodies a lone group is split into. Above that count, the mesh is a
     # tessellated model rather than a multi-body part.
     MAX_BODIES = 100
@@ -32,10 +29,12 @@ module UniversalImporter
     # Initializes an OBJ mesh importer.
     #
     # @param [String] file_path Absolute path to the OBJ file to import.
-    # @param [String] component_name Name to give to the component definition.
+    # @param [Integer] smooth_flags Smoothing flags applied to the edges of the mesh created.
+    # @param [String] component_name Name to give to the component definition created.
     # @param [String] operation_name Name of the SketchUp operation.
-    def initialize(file_path, component_name, operation_name = TRANSLATE['Import Component'])
+    def initialize(file_path, smooth_flags, component_name, operation_name = TRANSLATE['Import Component'])
       @file_path = file_path
+      @smooth_flags = smooth_flags
       @component_name = component_name
       @operation_name = operation_name
 
@@ -340,7 +339,7 @@ module UniversalImporter
 
             material = @materials[material_name]
             # The material is applied on both sides to color faces whatever their orientation.
-            group.entities.add_faces_from_mesh(pm, SMOOTH_FLAGS, material, material)
+            group.entities.add_faces_from_mesh(pm, @smooth_flags, material, material)
           end
         else
           # Recursively creates child groups.

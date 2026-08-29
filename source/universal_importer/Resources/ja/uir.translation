@@ -3,7 +3,7 @@
 // Universal Importer Plugin Japanese Translation
 //
 // Authors: PC-Trace, DeepL
-// Last Update: August 24, 2026
+// Last Update: August 29, 2026
 /////////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -34,6 +34,10 @@
 
 "Import Component"="コンポーネントをインポート";
 
+// File: smoothing.rb
+
+"Smooth Component"="コンポーネントを滑らかにする";
+
 // File: menu.rb
 
 "Import with"="インポート対象";
@@ -41,6 +45,7 @@
 "Propose Polygon Reduction"="ポリゴン削減を提案";
 "Claim Missing Textures"="不足しているテクスチャを報告";
 "Preserve CAD Hierarchy"="CAD階層を保持";
+"Soften and Smooth Edges"="エッジをソフトに/滑らかに";
 "Get Help or Report a Bug"="ヘルプをまたはバグを報告する";
 "Donate to Plugin Author"="プラグイン作成者に寄付する";
 "Plugins of Same Author"="同じ著者のプラグイン";

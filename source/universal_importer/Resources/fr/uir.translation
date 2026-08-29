@@ -3,7 +3,7 @@
 // Universal Importer Plugin French Translation
 //
 // Author: Samuel Tallet
-// Last Update: August 24, 2026
+// Last Update: August 29, 2026
 ///////////////////////////////////////////////
 
 // File: universal_importer.rb
@@ -34,6 +34,10 @@
 
 "Import Component"="Importer le composant";
 
+// File: smoothing.rb
+
+"Smooth Component"="Lisser le composant";
+
 // File: menu.rb
 
 "Import with"="Importer avec";
@@ -41,6 +45,7 @@
 "Propose Polygon Reduction"="Proposer une réduction des polygones";
 "Claim Missing Textures"="Réclamer les textures manquantes";
 "Preserve CAD Hierarchy"="Préserver la hiérarchie CAD";
+"Soften and Smooth Edges"="Adoucir et lisser les arêtes";
 "Get Help or Report a Bug"="Obtenir de l'aide ou signaler un bug";
 "Donate to Plugin Author"="Faire un don à l'auteur de l'extension";
 "Plugins of Same Author"="Extensions du même auteur";

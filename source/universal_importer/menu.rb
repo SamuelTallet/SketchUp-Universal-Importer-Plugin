@@ -63,6 +63,14 @@ module UniversalImporter
         Import.preserve_cad_hierarchy? ? MF_CHECKED : MF_UNCHECKED
       end
 
+      sse_menu_item = plugin_menu.add_item(TRANSLATE['Soften and Smooth Edges']) do
+        Import.soften_and_smooth_edges = !Import.soften_and_smooth_edges?
+      end
+
+      plugin_menu.set_validation_proc(sse_menu_item) do
+        Import.soften_and_smooth_edges? ? MF_CHECKED : MF_UNCHECKED
+      end
+
       plugin_menu.add_separator
 
       plugin_menu.add_item(TRANSLATE['Get Help or Report a Bug']) do
