@@ -1,6 +1,6 @@
 # Free universal importer plugin for SketchUp
 
-Import 3D models in SketchUp. 50+ formats are supported. Reduce polygon count on the fly.
+Import 3D models in SketchUp. 60+ formats are supported. Reduce polygon count on the fly.
 
 ## Supported formats
 

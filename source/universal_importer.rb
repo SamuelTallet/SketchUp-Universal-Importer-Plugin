@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2026 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -35,10 +35,10 @@ module UniversalImporter
 
   extension.version     = VERSION
   extension.creator     = 'Samuel Tallet'
-  extension.copyright   = "© 2024 #{extension.creator}"
+  extension.copyright   = "© 2026 #{extension.creator}"
 
   features = [
-    TRANSLATE['Import 3D models in SketchUp. 50+ formats are supported.'],
+    TRANSLATE['Import 3D models in SketchUp. 60+ formats are supported.'],
     TRANSLATE['Reduce polygon count on the fly.']
   ]
 

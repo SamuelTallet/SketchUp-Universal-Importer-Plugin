@@ -9,7 +9,7 @@
 // File: universal_importer.rb
 
 "Universal Importer"="Importador Universal";
-"Import 3D models in SketchUp. 50+ formats are supported."="Importar modelos 3D en SketchUp. Se admiten más de 50 formatos.";
+"Import 3D models in SketchUp. 60+ formats are supported."="Importar modelos 3D en SketchUp. Se admiten más de 60 formatos.";
 "Reduce polygon count on the fly."="Reducir el número de polígonos al vuelo.";
 
 // File: donate.rb
