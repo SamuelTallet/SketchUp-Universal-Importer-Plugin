@@ -63,12 +63,12 @@ module UniversalImporter
         Import.preserve_cad_hierarchy? ? MF_CHECKED : MF_UNCHECKED
       end
 
-      sse_menu_item = plugin_menu.add_item(TRANSLATE['Soften and Smooth Edges']) do
-        Import.soften_and_smooth_edges = !Import.soften_and_smooth_edges?
+      scf_menu_item = plugin_menu.add_item(TRANSLATE['Soften Coplanar Faces']) do
+        Import.soften_coplanar_faces = !Import.soften_coplanar_faces?
       end
 
-      plugin_menu.set_validation_proc(sse_menu_item) do
-        Import.soften_and_smooth_edges? ? MF_CHECKED : MF_UNCHECKED
+      plugin_menu.set_validation_proc(scf_menu_item) do
+        Import.soften_coplanar_faces? ? MF_CHECKED : MF_UNCHECKED
       end
 
       plugin_menu.add_separator

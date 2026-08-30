@@ -29,14 +29,10 @@ module UniversalImporter
     # Initializes an OBJ mesh importer.
     #
     # @param [String] file_path Absolute path to the OBJ file to import.
-    # @param [Integer] smooth_flags Smoothing flags applied to the edges of the mesh created.
     # @param [String] component_name Name to give to the component definition created.
-    # @param [String] operation_name Name of the SketchUp operation.
-    def initialize(file_path, smooth_flags, component_name, operation_name = TRANSLATE['Import Component'])
+    def initialize(file_path, component_name)
       @file_path = file_path
-      @smooth_flags = smooth_flags
       @component_name = component_name
-      @operation_name = operation_name
 
       @vertices = []
       @groups = {}
@@ -46,33 +42,17 @@ module UniversalImporter
       @current_material_name = nil
     end
 
-    # Imports the OBJ file.
+    # Imports the OBJ file as a component definition, left free of any instance.
     #
-    # @return [Sketchup::ComponentInstance] The component instance added to the model.
+    # @return [Sketchup::ComponentDefinition] The component definition created.
     def import
-      model = Sketchup.active_model
-      model.start_operation(@operation_name, disable_ui=true)
+      component_def = Sketchup.active_model.definitions.add(@component_name)
 
-      begin
-        # Creates a component definition for this OBJ file.
-        component_def = model.definitions.add(@component_name)
+      File.open(@file_path, 'r') { |file| process_file(file) }
+      split_lone_group_into_bodies
+      create_sketchup_groups_recursive(component_def.entities, @groups)
 
-        # Processes the OBJ file and creates SketchUp groups based on the OBJ data.
-        # These groups are added to the component definition.
-        File.open(@file_path, 'r') { |file| process_file(file) }
-        split_lone_group_into_bodies
-        create_sketchup_groups_recursive(component_def.entities, @groups)
-
-        # Adds an instance of the component definition to the model, at the origin.
-        component = model.active_entities.add_instance(component_def, Geom::Transformation.new)
-        model.commit_operation
-
-        component
-      rescue StandardError
-        model.abort_operation
-        # Let the caller report the error, so the whole plugin does it the same way.
-        raise
-      end
+      component_def
     end
 
     private
@@ -339,7 +319,7 @@ module UniversalImporter
 
             material = @materials[material_name]
             # The material is applied on both sides to color faces whatever their orientation.
-            group.entities.add_faces_from_mesh(pm, @smooth_flags, material, material)
+            group.entities.add_faces_from_mesh(pm, Geom::PolygonMesh::NO_SMOOTH_OR_HIDE, material, material)
           end
         else
           # Recursively creates child groups.

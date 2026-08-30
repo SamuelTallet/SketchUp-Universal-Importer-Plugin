@@ -23,6 +23,7 @@ require 'universal_importer/unzip'
 require 'universal_importer/meshlab'
 require 'universal_importer/collada'
 require 'universal_importer/obj_mesh_import'
+require 'universal_importer/coplanar'
 require 'universal_importer/donate'
 require 'universal_importer/imports'
 
@@ -58,7 +59,7 @@ module UniversalImporter
       :propose_polygon_reduction? => true,
       :claim_missing_textures? => false,
       :preserve_cad_hierarchy? => true,
-      :soften_and_smooth_edges? => true
+      :soften_coplanar_faces? => true
     }
 
     # Sets "Propose polygon reduction" option.
@@ -118,23 +119,23 @@ module UniversalImporter
       @@options[:preserve_cad_hierarchy?]
     end
 
-    # Sets "Soften and smooth edges" option.
+    # Sets "Soften coplanar faces" option.
     #
     # @param [Boolean] yes_or_no
     #
     # @raise [ArgumentError]
-    def self.soften_and_smooth_edges=(yes_or_no)
+    def self.soften_coplanar_faces=(yes_or_no)
       raise ArgumentError, 'Yes or No must be a Boolean'\
         unless yes_or_no == true || yes_or_no == false
 
-      @@options[:soften_and_smooth_edges?] = yes_or_no
+      @@options[:soften_coplanar_faces?] = yes_or_no
     end
 
-    # Gets "Soften and smooth edges" option.
+    # Gets "Soften coplanar faces" option.
     #
     # @return [Boolean]
-    def self.soften_and_smooth_edges?
-      @@options[:soften_and_smooth_edges?]
+    def self.soften_coplanar_faces?
+      @@options[:soften_coplanar_faces?]
     end
 
     # Imports a model.
@@ -621,13 +622,21 @@ module UniversalImporter
     # The resulting component is automatically placed at origin.
     def import_inter_cad_as_nested
 
-      if @@options[:soften_and_smooth_edges?]
-        smooth_flags = Geom::PolygonMesh::AUTO_SOFTEN | Geom::PolygonMesh::SMOOTH_SOFT_EDGES
-      else
-        smooth_flags = Geom::PolygonMesh::NO_SMOOTH_OR_HIDE
-      end
+      model = Sketchup.active_model
+      model.start_operation(TRANSLATE['Import Component'], disable_ui=true)
 
-      component = ObjMeshImport.new(@inter_obj_file_path, smooth_flags, @source_filename).import
+      begin
+        component_def = ObjMeshImport.new(@inter_obj_file_path, @source_filename).import
+
+        Coplanar.smooth_entities(component_def.entities) \
+          if @@options[:soften_coplanar_faces?]
+
+        component = model.active_entities.add_instance(component_def, IDENTITY)
+        model.commit_operation
+      rescue StandardError
+        model.abort_operation
+        raise # Let the plugin report the error.
+      end
 
       delete_temp_files
 
