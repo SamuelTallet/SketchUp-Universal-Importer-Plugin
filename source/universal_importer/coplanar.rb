@@ -25,9 +25,14 @@ module UniversalImporter
   module Coplanar
 
     # Two faces are taken as coplanar as long as their normals stay within this angle of each other.
-    # Too low a tolerance and the facets of a curved surface stay drawn, too high and a chamfer is
-    # softened with them. 30 degrees keeps a 45 degrees chamfer visible.
-    ANGLE_TOLERANCE = 30.degrees
+    # The facets of a curved surface are 360 / segments degrees apart, and a single segment chamfer
+    # on a right angle is 45 degrees: no single tolerance hides the first and keeps the second.
+
+    # For the CAD models, tessellated fine enough to keep their chamfers.
+    CAD_ANGLE_TOLERANCE = 30.degrees
+
+    # For the meshes, coarse enough to trade their single segment chamfers for their facets.
+    MESH_ANGLE_TOLERANCE = 60.degrees
 
     # Smooths the coplanar faces of a component, and of the groups and components nested in it.
     #
@@ -36,17 +41,21 @@ module UniversalImporter
     # model keep their crispness.
     #
     # @param [Sketchup::ComponentInstance] component
+    # @param [Numeric] angle_tolerance In radians.
     #
     # @raise [ArgumentError]
-    def self.smooth(component)
+    def self.smooth(component, angle_tolerance)
       raise ArgumentError, 'component must be a Sketchup::ComponentInstance' \
         unless component.is_a?(Sketchup::ComponentInstance)
+
+      raise ArgumentError, 'angle tolerance must be a Numeric' \
+        unless angle_tolerance.is_a?(Numeric)
 
       model = Sketchup.active_model
       model.start_operation(TRANSLATE['Soften Coplanar Faces'], disable_ui=true)
 
       begin
-        smooth_entities(component.definition.entities)
+        smooth_entities(component.definition.entities, angle_tolerance)
         model.commit_operation
       rescue StandardError => exception
         model.abort_operation
@@ -57,26 +66,28 @@ module UniversalImporter
     # Smooths the coplanar faces found in entities, and in the groups and components nested in them.
     #
     # @param [Sketchup::Entities] entities
-    def self.smooth_entities(entities)
+    # @param [Numeric] angle_tolerance In radians.
+    def self.smooth_entities(entities, angle_tolerance)
       entities.each do |entity|
 
         if entity.is_a?(Sketchup::Edge)
-          soften(entity) if edge?(entity)
+          soften(entity) if edge?(entity, angle_tolerance)
         elsif entity.is_a?(Sketchup::Group)
-          smooth_entities(entity.entities)
+          smooth_entities(entity.entities, angle_tolerance)
         elsif entity.is_a?(Sketchup::ComponentInstance)
-          smooth_entities(entity.definition.entities)
+          smooth_entities(entity.definition.entities, angle_tolerance)
         end
 
       end
     end
 
-    # Whether an edge joins exactly two faces lying, within ANGLE_TOLERANCE, in a same plane.
+    # Whether an edge joins exactly two faces lying, within the angle tolerance, in a same plane.
     #
     # @param [Sketchup::Edge] edge
+    # @param [Numeric] angle_tolerance In radians.
     #
     # @return [Boolean]
-    def self.edge?(edge)
+    def self.edge?(edge, angle_tolerance)
       faces = edge.faces
       # Two faces are needed to compare their planes, so loose, bordering
       # and non-manifold edges are left alone.
@@ -85,7 +96,7 @@ module UniversalImporter
       # Two faces sharing an edge and heading nearly the same way stand for a single surface. The
       # angle is unsigned, so two faces turning their backs on each other are 180 degrees apart,
       # hence shaded apart, as they should be.
-      faces[0].normal.angle_between(faces[1].normal) <= ANGLE_TOLERANCE
+      faces[0].normal.angle_between(faces[1].normal) <= angle_tolerance
     end
     private_class_method :edge?
 

@@ -37,10 +37,11 @@ module UniversalImporter
     SUPPORTED_TEXTURES = ['jpg', 'png', 'bmp', 'tga', 'tif']
 
     # Model file extensions to import with the Mayo Converter CLI.
+    # Because Assimp doesn't support all these CAD formats and STL well.
     WITH_MAYO = ['step', 'stp', 'iges', 'igs', 'brep', 'stl']
 
-    # CAD model file extensions whose parts are exported separately by Mayo.
-    CAD_PARTS_EXPORTED = WITH_MAYO - ['brep', 'stl']
+    # CAD file extensions, among model files imported with Mayo.
+    CAD_WITH_MAYO = WITH_MAYO - ['stl']
 
     # Processing status.
     # Source filename, file extension, importer and units.
@@ -196,7 +197,7 @@ module UniversalImporter
       preserve_cad_hierarchy = false
 
       if @@options[:preserve_cad_hierarchy?]
-        if CAD_PARTS_EXPORTED.include?(@source_file_ext)
+        if CAD_WITH_MAYO.include?(@source_file_ext)
           preserve_cad_hierarchy = true
         else
           warn "Hierarchy can't be preserved"
@@ -628,7 +629,7 @@ module UniversalImporter
       begin
         component_def = ObjMeshImport.new(@inter_obj_file_path, @source_filename).import
 
-        Coplanar.smooth_entities(component_def.entities) \
+        Coplanar.smooth_entities(component_def.entities, Coplanar::CAD_ANGLE_TOLERANCE) \
           if @@options[:soften_coplanar_faces?]
 
         component = model.active_entities.add_instance(component_def, IDENTITY)
