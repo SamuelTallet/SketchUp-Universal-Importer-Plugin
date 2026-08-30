@@ -1,5 +1,5 @@
 # Universal Importer extension for SketchUp 2017 or newer.
-# Copyright: © 2024 Samuel Tallet <samuel.tallet at gmail dot com>
+# Copyright: © 2026 Samuel Tallet <samuel.tallet at gmail dot com>
 # 
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation, either version 3.0 of the License, or (at your option) any later version.
@@ -72,7 +72,7 @@ module UniversalImporter
       scaling = Geom::Transformation.scaling(scale, scale, scale)
 
       model = Sketchup.active_model
-      model.start_operation(TRANSLATE['Change Component Units'], disable_ui=true)
+      model.start_operation(TRANSLATE['Resize Component'], disable_ui=true)
       
       begin
         component.transform!(scaling)

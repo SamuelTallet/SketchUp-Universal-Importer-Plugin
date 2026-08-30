@@ -46,7 +46,11 @@
 "Donate to Plugin Author"="Faire un don à l'auteur de l'extension";
 "Plugins of Same Author"="Extensions du même auteur";
 
-// File: polyreduction.rb
+// File: orientation.rb
+
+"Rotate Component"="Faire pivoter le composant";
+
+// File: poly_reduction.rb
 
 "Selection must be empty!"="La sélection doit être vide !";
 "Current face count:"="Nombre de faces actuel :";
@@ -56,3 +60,7 @@
 // File: toolbar.rb
 
 "Reduce Polygon Count..."="Réduire le nombre de polygones...";
+
+// File: units.rb
+
+"Resize Component"="Redimensionner le composant";
