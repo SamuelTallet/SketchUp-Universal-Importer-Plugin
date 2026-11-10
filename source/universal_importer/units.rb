@@ -24,6 +24,7 @@ module UniversalImporter
     MILLIMETERS = :mm
     CENTIMETERS = :cm
     METERS = :m
+    KILOMETERS = :km
     INCHES = :in
     FEET = :ft
     YARDS = :yd
@@ -32,6 +33,7 @@ module UniversalImporter
     AS_METERS = {
       :mm => 0.001,
       :cm => 0.01,
+      :km => 1000.0,
       :in => 0.0254,
       :ft => 0.3048,
       :yd => 0.9144

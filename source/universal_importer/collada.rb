@@ -47,6 +47,28 @@ module UniversalImporter
 
     end
 
+    # Sets the unit of a DAE file, so SketchUp resizes the model on import.
+    #
+    # @param [String] dae_file_path Absolute path to the DAE file to fix.
+    # @param [Numeric] meters_per_unit E.g. 1000 for kilometers.
+    # @raise [ArgumentError]
+    def self.set_unit(dae_file_path, meters_per_unit)
+
+      raise ArgumentError, 'dae_file_path must be a String' \
+        unless dae_file_path.is_a?(String)
+
+      raise ArgumentError, 'meters_per_unit must be a Numeric' \
+        unless meters_per_unit.is_a?(Numeric)
+
+      dae_file_contents = File.read(dae_file_path)
+
+      # Assimp writes: <unit name="meter" meter="1" />
+      dae_file_contents.sub!(/<unit\b[^>]*\/>/, "<unit meter=\"#{meters_per_unit}\" />")
+
+      File.write(dae_file_path, dae_file_contents)
+
+    end
+
     # Fixes the double sided faces in a DAE file to import in SketchUp.
     # @see https://github.com/SketchUp/api-issue-tracker/issues/414
     #

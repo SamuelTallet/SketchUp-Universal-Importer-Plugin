@@ -255,7 +255,10 @@ module UniversalImporter
       # from the source file extension. This default speeds up the workflow with a not-too-bad error rate.
       defaults = [@source_units]
 
-      options = [Units::MILLIMETERS, Units::CENTIMETERS, Units::METERS, Units::INCHES, Units::FEET, Units::YARDS]
+      options = [
+        Units::MILLIMETERS, Units::CENTIMETERS, Units::METERS, Units::KILOMETERS,
+        Units::INCHES, Units::FEET, Units::YARDS
+      ]
       list = [options.join('|')]
 
       title = TRANSLATE['Scaling'] + ' - ' + PLUGIN_NAME
@@ -595,6 +598,10 @@ module UniversalImporter
       convert_intermediate_to_final
 
       COLLADA.fix_double_sided_faces(@final_dae_file_path)
+
+      # Kilometers are the only units that enlarge the model. SketchUp must build it at its final size,
+      # otherwise it would lose the tiny faces before ModelObserver#onPlaceComponent could resize it.
+      COLLADA.set_unit(@final_dae_file_path, 1000) if @source_units.to_s == 'km'
 
       if Sketchup.version.to_i >= 18
         dae_importer_options = {
