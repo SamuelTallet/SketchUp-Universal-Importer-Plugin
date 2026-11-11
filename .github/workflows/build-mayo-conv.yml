@@ -1,0 +1,134 @@
+name: Build Mayo Conv
+
+on:
+  workflow_dispatch: # On demand.
+
+env:
+  MAYO_REF: v0.10.0
+  OCCT_REF: V7_9_3 # Same OCCT version on all platforms. Latest supported by Mayo v0.10.0.
+  MACOSX_DEPLOYMENT_TARGET: '11.0' # Minimum allowed by Qt 6.5.
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # Lets each OS finish and cache its OCCT build.
+      matrix:
+        include:
+          - os: windows-latest
+            os_and_arch: windows-x64
+            qt_version: '6.8.*' # Needs Windows 10 1809+. Qt 6.2 headers don't compile with MSVC 19.50+.
+            cmake_args: -A x64
+            occt_dir: occt
+          - os: macos-latest
+            os_and_arch: macos-universal2
+            qt_version: '6.5.*' # Oldest universal Qt for macOS with std::filesystem (11+).
+            cmake_args: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release # Windows uses --config.
+            occt_args: -DINSTALL_NAME_DIR=@rpath # Relocatable dylibs.
+            occt_dir: occt/lib/cmake/opencascade
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Get Current Date
+      id: now
+      run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ matrix.qt_version }}
+
+    - name: Restore OCCT
+      id: occt-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: occt
+        key: occt-${{ env.OCCT_REF }}-${{ matrix.os_and_arch }}${{ runner.os == 'macOS' && format('-{0}', env.MACOSX_DEPLOYMENT_TARGET) || '' }}
+
+    - name: Clone OCCT
+      if: steps.occt-cache.outputs.cache-hit != 'true'
+      uses: actions/checkout@v7
+      with:
+        repository: Open-Cascade-SAS/OCCT
+        ref: ${{ env.OCCT_REF }}
+        path: occt-src
+
+    - name: Build OCCT
+      if: steps.occt-cache.outputs.cache-hit != 'true'
+      run: |
+        cmake -S occt-src -B occt-build ${{ matrix.cmake_args }} -DINSTALL_DIR="$(pwd -W 2>/dev/null || pwd)/occt" -DBUILD_MODULE_Draw=OFF -DUSE_TK=OFF -DUSE_FREETYPE=OFF -DBUILD_SOVERSION_NUMBERS=3 ${{ matrix.occt_args }}
+        cmake --build occt-build --config Release --parallel 4 # Bare --parallel means unlimited jobs with make.
+        cmake --install occt-build --config Release
+
+    - name: Save OCCT
+      if: steps.occt-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: occt
+        key: ${{ steps.occt-cache.outputs.cache-primary-key }}
+
+    - name: Clone Mayo
+      uses: actions/checkout@v7
+      with:
+        repository: fougue/mayo
+        ref: ${{ env.MAYO_REF }}
+        path: mayo-src
+
+    - name: Build Mayo Conv
+      run: |
+        cmake -S mayo-src -B mayo-build ${{ matrix.cmake_args }} -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}" -DOpenCASCADE_DIR="${{ github.workspace }}/${{ matrix.occt_dir }}" -DMayo_BuildApp=OFF -DMayo_BuildPluginAssimp=OFF -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_INSTALL_RPATH=@executable_path
+        cmake --build mayo-build --config Release --parallel 4
+
+    - name: Bundle Dependencies
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory out
+        Copy-Item mayo-build/Release/mayo-conv.exe, "$env:QT_ROOT_DIR/bin/Qt6Core.dll" out
+        vswhere -latest -find 'VC\Redist\MSVC\*\x64\Microsoft.VC*.CRT\*.dll' | Copy-Item -Destination out # All: some load at runtime.
+        $dumpbin = vswhere -latest -find 'VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe' | Select-Object -First 1
+        $occtBin = (Get-ChildItem occt -Recurse -Filter TKernel.dll).DirectoryName
+        $queue = [Collections.Generic.Queue[string]]::new(); $queue.Enqueue('mayo-conv.exe')
+        while ($queue.Count) { # Copies only OCCT DLLs mayo-conv needs, directly or not.
+          & $dumpbin /dependents "out/$($queue.Dequeue())" | Select-String '^\s+(TK\w+\.dll)$' | ForEach-Object {
+            $dll = $_.Matches[0].Groups[1].Value
+            if (-not (Test-Path "out/$dll")) { Copy-Item "$occtBin/$dll" out; $queue.Enqueue($dll) }
+          }
+        }
+
+    - name: Bundle Dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir out
+        cp mayo-build/mayo-conv "$QT_ROOT_DIR/lib/QtCore.framework/Versions/A/QtCore" out/
+        printf '[Paths]\nPrefix=.\n' > out/qt.conf # Else Qt 6.5 crashes looking for QtCore.framework.
+        queue=(mayo-conv)
+        while [ ${#queue[@]} -gt 0 ]; do # Copies only OCCT dylibs mayo-conv needs, directly or not.
+          for lib in $(otool -L "out/${queue[0]}" | grep -o 'libTK[^ ]*\.dylib'); do
+            [ -f "out/$lib" ] || { cp "occt/lib/$lib" out/; queue+=("$lib"); }
+          done
+          queue=("${queue[@]:1}")
+        done
+        install_name_tool -change @rpath/QtCore.framework/Versions/A/QtCore @executable_path/QtCore out/mayo-conv
+        codesign --force --sign - out/mayo-conv
+
+    - name: Build Test
+      run: |
+        rm -rf occt "$QT_ROOT_DIR" # Build deps must not be needed anymore.
+        out/mayo-conv --version
+        if [ "$RUNNER_OS" = macOS ]; then for f in out/mayo-conv out/QtCore out/*.dylib; do lipo "$f" -verify_arch arm64 x86_64; done; fi
+
+    - name: Conversion Tests
+      run: |
+        for ext in step iges brep stla stlb; do # Formats Universal Importer converts with Mayo.
+          out/mayo-conv --export "test-$ext.obj" "mayo-src/tests/inputs/cube.$ext"
+          grep -Eq '^#[[:space:]]+Faces:[[:space:]]+[0-9]+' "test-$ext.obj" # Read by MayoConv.get_face_count.
+        done
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: mayo-conv-${{ steps.now.outputs.date }}-${{ matrix.os_and_arch }}
+        path: out/
+        retention-days: 7
