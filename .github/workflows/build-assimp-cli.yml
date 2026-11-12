@@ -30,11 +30,11 @@ jobs:
 
     - name: Configure Build
       if: matrix.os == 'windows-latest'
-      run: cmake -S . -B ./build -A x64 -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF
+      run: cmake -S . -B ./build -A x64 -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_ASSIMP_VIEW=OFF -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF -DASSIMP_BUILD_DRACO=ON
 
     - name: Configure Build
       if: matrix.os == 'macos-latest'
-      run: cmake -S . -B ./build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF
+      run: cmake -S . -B ./build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_BUILD_TYPE=Release -DASSIMP_BUILD_ASSIMP_TOOLS=ON -DASSIMP_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DASSIMP_INSTALL=OFF -DASSIMP_INSTALL_PDB=OFF -DASSIMP_BUILD_DRACO=ON -DASSIMP_BUILD_DRACO_STATIC=ON -DCMAKE_CXX_FLAGS=-Wno-error=implicit-const-int-float-conversion
 
     - name: Build Release
       run: cmake --build ./build --config Release
@@ -52,7 +52,7 @@ jobs:
           ${{ matrix.exe }} export "test/models/$model" test.obj -tri
           ${{ matrix.exe }} export test.obj test.dae -tri # Same chain as Universal Importer.
         done
-        ${{ matrix.exe }} extract test/models/glTF2/BoxTextured-glTF-Binary/BoxTextured.glb # Embedded textures.
+        ${{ matrix.exe }} extract test/models/glTF2/draco/robot.glb # Draco compression and embedded textures.
       shell: bash
 
     - name: Upload Artifact
