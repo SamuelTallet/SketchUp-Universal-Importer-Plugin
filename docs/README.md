@@ -112,4 +112,4 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 ## Copyright
 
-© 2024 Samuel Tallet
+© 2026 Samuel Tallet
