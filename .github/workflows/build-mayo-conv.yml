@@ -30,10 +30,6 @@ jobs:
         shell: bash
 
     steps:
-    - name: Get Current Date
-      id: now
-      run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
@@ -129,6 +125,6 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: mayo-conv-${{ steps.now.outputs.date }}-${{ matrix.os_and_arch }}
+        name: mayo-conv-${{ env.MAYO_REF }}-${{ matrix.os_and_arch }}
         path: out/
         retention-days: 7

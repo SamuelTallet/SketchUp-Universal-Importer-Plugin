@@ -21,11 +21,6 @@ jobs:
             exe: build/bin/assimp
 
     steps:
-    - name: Get Current Date
-      id: now
-      run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-      shell: bash
-
     - name: Clone Assimp
       uses: actions/checkout@v7
       with:
@@ -63,6 +58,6 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: assimp-cli-${{ steps.now.outputs.date }}-${{ matrix.os_and_arch }}
+        name: assimp-cli-${{ env.ASSIMP_REF }}-${{ matrix.os_and_arch }}
         path: build/bin/
         retention-days: 7
