@@ -3,13 +3,14 @@
 // Universal Importer Plugin Spanish Translation
 //
 // Authors: Óscar Hernández, DeepL
-// Last Update: August 30, 2026
+// Last Update: November 14, 2026
 ////////////////////////////////////////////////
 
 // File: universal_importer.rb
 
 "Universal Importer"="Importador Universal";
 "Import 3D models in SketchUp. 60+ formats are supported."="Importar modelos 3D en SketchUp. Se admiten más de 60 formatos.";
+"CAD hierarchy is preserved."="Se conserva la jerarquía CAD.";
 "Reduce polygon count on the fly."="Reducir el número de polígonos al vuelo.";
 
 // File: donate.rb

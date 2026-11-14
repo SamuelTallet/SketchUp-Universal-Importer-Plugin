@@ -3,13 +3,14 @@
 // Universal Importer Plugin Japanese Translation
 //
 // Authors: PC-Trace, DeepL
-// Last Update: August 30, 2026
+// Last Update: November 14, 2026
 /////////////////////////////////////////////////
 
 // File: universal_importer.rb
 
 "Universal Importer"="ユニバーサルインポーター";
 "Import 3D models in SketchUp. 60+ formats are supported."="SketchUp に 3D モデルをインポートします。 60以上のフォーマットがサポートされています.";
+"CAD hierarchy is preserved."="CAD の階層構造が保持されます.";
 "Reduce polygon count on the fly."="ポリゴン数をその場で削減.";
 
 // File: donate.rb

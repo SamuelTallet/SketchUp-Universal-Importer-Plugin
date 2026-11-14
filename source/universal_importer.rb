@@ -39,6 +39,7 @@ module UniversalImporter
 
   features = [
     TRANSLATE['Import 3D models in SketchUp. 60+ formats are supported.'],
+    TRANSLATE['CAD hierarchy is preserved.'],
     TRANSLATE['Reduce polygon count on the fly.']
   ]
 
