@@ -96,7 +96,7 @@ Go back to CloudCompare, deselect "Preserve global shift on save", export again 
 
 ### My problem isn't resolved or isn't listed above.
 
-Report a bug on official [Universal Importer forum thread](https://sketchucation.com/forums/viewtopic.php?f=323&t=71951) at SketchUcation or here at GitHub on [Issues](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) page.
+Report a bug on official [Universal Importer forum thread](https://community.sketchucation.com/topic/159197/plugin-universal-importer-v1-2-6-30-july-2024) at SketchUcation or here at GitHub on [Issues](https://github.com/SamuelTallet/SketchUp-Universal-Importer-Plugin/issues) page.
 
 ## Thanks
 
